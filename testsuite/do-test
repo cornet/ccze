@@ -1,0 +1,95 @@
+## -*- shell-script -*-
+## do-test - run the test script
+## Copyright (C) 2003 Gergely Nagy <algernon@bonehunter.rulez.org>
+##
+## This file is part of CCZE.
+##
+## CCZE is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## CCZE is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+# Run the test saving stderr to a file, and showing stdout if VERBOSE == 1
+if test -f ${srcdir}/${testname}.in; then
+	${RUNPROG} ${PROG_CMDLINE} < ${srcdir}/${testname}.in \
+		2>${testname}.err | tee -i ${testname}.out >&2
+else
+	if test -f ${testname}.in; then
+		${RUNPROG} ${PROG_CMDLINE} < ${testname}.in \
+			2>${testname}.err | tee -i ${testname}.out >&2
+	else
+		${RUNPROG} ${PROG_CMDLINE} 2>${testname}.err | \
+			tee -i ${testname}.out >&2
+	fi
+fi
+
+if test -f ${srcdir}/${testname}.ok; then
+	TEST_OK_LIST=${TEST_OK_LIST-${srcdir}/${testname}.ok}
+fi
+
+if test -f ${srcdir}/${testname}.errok; then
+	TEST_ERROK_LIST=${TEST_ERROK_LIST-${srcdir}/${testname}.errok}
+fi
+
+# Test against expected output
+case x${TEST_OK_LIST} in
+	x)
+		TEST_OK=yes
+		;;
+	x*)
+		TEST_OK=no
+		;;
+esac
+
+for f in ${TEST_OK_LIST}; do
+	if test -f $f; then
+		if ${CMP} -s ${testname}.out $f; then
+			TEST_OK=yes
+		fi
+	fi
+done
+
+if ! test ${TEST_OK} = yes; then
+	echo "ok:" >&2
+	cat ${testname}.ok >&2
+	exit 1
+fi
+
+# Munge error output to remove leading directories, `lt-' or trailing `.exe'
+sed -e "s,^[^:]*[lt-]*${PACKAGE}[.ex]*:,${PACKAGE}:," \
+	${testname}.err > sederr && mv sederr ${testname}.err
+
+# Show stderr if doesn't match expected output if VERBOSE == 1
+case x${TEST_ERROK_LIST} in
+	x)
+		TEST_ERROK=yes
+		;;
+	x*)
+		TEST_ERROK=no
+		;;
+esac
+
+for f in ${TEST_ERROK_LIST}; do
+	if test -f $f; then
+		if ${CMP} -s ${testname}.err $f; then
+			TEST_ERROK=yes
+		fi
+	fi
+done
+
+if ! test ${TEST_ERROK} = yes; then
+	echo "err:" >&2
+	cat ${testname}.err >&2
+	echo "errok:" >&2
+	cat ${testname}.errok >&2
+	exit 1
+fi

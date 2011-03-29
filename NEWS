@@ -1,0 +1,106 @@
+NEWS -- list of user-visible changes		-*- outline -*-
+
+* CCZE 0.2.1 [Fireflower] -- 2003-05-13
+
+The Fireflower release brings transparency and background colour
+support for the raw ANSI output mode, documentation updates and minor
+bugfixes all over the place.
+
+* CCZE 0.2.0 [Mephisto] -- 2003-03-29
+
+Mephisto features raw ANSI output support, without the use of
+nCurses. This adds support for scrollback, both on console and in
+xterms. Also, it allows one to send CCZE to the background, and mix
+various logs and options on one terminal.
+
+A new coloriser for Pure-FTPD's Stats log format was added, and the
+httpd module was modified to handle Pure-FTPD's CLF format, and bad
+HTTP requests.
+
+* CCZE 0.1.228 [Largo] -- 2003-03-20
+
+This release features many many internal enhancements, mostly for the
+plug-in system, a coloriser for proftpd logs, and various fixes all
+over the place.
+
+* CCZE 0.1.212 [Avatar] -- 2003-03-04
+
+Implemented support for passing arguments to plugins. None of the
+plugins shipped with CCZE support this, however, external plugins
+might (and do, for that matter, see the homepage).
+
+Also, some minor bugs (misformatting on the manual page, garbled
+output, and not properly recognised procmail logs) were also squashed.
+
+* CCZE 0.1.200 [Enigma of the Absolute] -- 2003-02-21
+
+During the past few weeks, CCZE was ported to Cygwin and Tru64 (many
+thanks to Jon Ewing and Erik Braun for their help).
+
+Also, a coloriser for distccd.log files was added too.
+
+* CCZE 0.1.171 [Mesmerism] -- 2003-02-09.
+
+This release brings colorisers for php.log, oops/oops.log,
+icecast/icecast.log and icecast/usage.log. Also, it is now possible to
+disable any of the built-in plugins, that is, they behave as loadable
+modules when --plugin is specified.
+
+For the benefit of transparent xterm users, CCZE defaults to not alter
+the background colour by default.
+
+* CCZE 0.1.150 [The Cardinal Sin] -- 2003-02-04.
+
+Since the last release, a great deal of code cleanup took place,
+resulting in most of the modules' sources getting renamed. As usual,
+bugs were fixed during this process, so certain characters will get
+escaped in the HTML output.
+
+Also, a full-blown coloriser module was added for xferlog files, and a
+syslog-subcoloriser for postfix logs.
+
+CCZE also handles SIGHUP nicely, by effectively restarting itself.
+
+* CCZE 0.1.134 [Song of the Dispossessed] -- 2003-01-19.
+
+Colours (even the background of the outputted HTML) can now be changed
+on the command-line too. During this process, CCZE was ported to
+FreeBSD.
+
+* CCZE 0.1.122 [Wild in The Woods] -- 2003-01-13.
+
+HTML output was cleaned up and made customisable. From now on, CCZE
+uses Cascading Style Sheets.
+
+* CCZE 0.1.108 [Devorzhum] -- 2003-01-10.
+
+In this release experimental HTML output was added. It is not really
+customisable yet, but produces usable output (better than that of
+colorize! :).
+
+* CCZE 0.1.103 [For My Fallen Angel] -- 2002.12.02.
+
+Many internal cleanups and documentation updates, support for built-in
+and partial plugins, and more.
+
+* CCZE 0.1.91 [Like Gods of the Sun] -- 2002.11.19.
+
+Major restructuring in the plugin code: cleaner, better, lighter. The
+new design allows sub-colorisers, to colorise syslog messages (with
+the date, host and that kind of stuff handled by the syslog module)
+for example. Two such plugins are included: one for ulogd, another for
+apmd.
+
+* CCZE 0.1.80 [The Stance of Evander Sinque] -- 2002.10.12.
+
+This is mainly a minor convenience-enhanced release. The major change
+is that CCZE will now exit if it could not load any plugins.
+
+* CCZE 0.1.72 [Base Level Erotica] -- 2002.10.04.
+
+Brown paper-bag release, as I broke all the modules in 0.1.64. Apart
+from this fix, this release is the same as 0.1.70 yesterday.
+
+* CCZE 0.1.70 [Edenbeast] -- 2002.10.03.
+
+Initial public release.

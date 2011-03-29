@@ -1,0 +1,10 @@
+Sep 14 11:45:00 iluvatar xinetd[2965]: Exiting...
+Sep 14 11:45:02 iluvatar xinetd[3111]: xinetd Version 2.3.7 started with libwrap loadavg options compiled in.
+Sep 14 11:45:02 iluvatar xinetd[3111]: Started working: 5 available services
+Sep 14 11:45:04 iluvatar pppd[2755]: Script /etc/ppp/ip-down finished (pid 3079), status = 0x1
+Sep 14 11:45:04 iluvatar pppd[2755]: Exit.
+Sep 14 12:20:02 iluvatar /USR/SBIN/CRON[10499]: (algernon) CMD (expect /usr/share/doc/tama/examples/tama-nanny.exp 2>/dev/null >/dev/null)
+Sep 14 12:27:46 iluvatar uptimed: moving up to position 50: 0 days, 01:04:13
+Oct 12 22:40:12 iluvatar last message repeated 10 times
+Oct 12 22:40:12 iluvatar -- MARK --
+Oct 12 22:40:12 iluvatar syslog-ng[2854]: syslog-ng version 1.5.15 going down

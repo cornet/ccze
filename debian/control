@@ -1,0 +1,15 @@
+Source: ccze
+Section: utils
+Priority: extra
+Maintainer: Stephen Gran <sgran@debian.org>
+Standards-Version: 3.7.2
+Build-Depends: libpcre3-dev, libncurses5-dev
+
+Package: ccze
+Architecture: any
+Depends: ${shlibs:Depends}
+Replaces: colorize (<= 0.3.1-2)
+Description: A robust, modular log coloriser
+ CCZE is a robust and modular log coloriser, with plugins for apm,
+ exim, fetchmail, httpd, postfix, procmail, squid, syslog, ulogd,
+ vsftpd, xferlog and more.

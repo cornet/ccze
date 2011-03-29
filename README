@@ -1,0 +1,11 @@
+This is CCZE, a fast log colorizer written in C, intended to be a
+drop-in replacement for colorize (http://colorize.raszi.hu).
+
+See the NEWS file for a description of recent changes to CCZE.
+
+See the file INSTALL for instructions on how to build and install the
+CCZE data and program files. See the CCZE manual for details about
+configuration. Type "man ccze" in the shell prompt.
+
+Please visit the official CCZE web page for more information. The URL
+is http://bonehunter.rulez.org/CCZE.html.

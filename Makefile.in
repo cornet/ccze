@@ -1,0 +1,76 @@
+## Makefile
+
+srcdir		= @srcdir@
+top_srcdir	= @top_srcdir@
+subdir		= 
+
+include Rules.mk
+
+## -- Private variables -- ##
+EXTRA_DIST	= Rules.mk.in configure configure.ac system.h.in \
+		COPYING ChangeLog install-sh config.guess config.sub \
+		AUTHORS README NEWS INSTALL THANKS ccze.spec.in \
+		ccze.spec ccze.plugins FAQ ChangeLog-0.1
+DISTCLEANFILES	= ccze.spec
+
+## -- Generic rules -- ##
+all: all-recursive ccze.spec
+all-recursive:
+	${MAKE} -C doc all
+	${MAKE} -C src all
+	${MAKE} -C testsuite all
+
+install uninstall:
+	${MAKE} -C doc $@
+	${MAKE} -C src $@
+
+TAGS::
+	${MAKE} -C src $@
+
+mostlyclean clean::
+	${MAKE} -C doc $@
+	${MAKE} -C src $@
+	${MAKE} -C testsuite $@
+	rm -rf *~ ++* ,,* gmon.out bb.out
+
+distclean:: clean
+	${MAKE} -C doc $@
+	${MAKE} -C src $@
+	${MAKE} -C testsuite $@
+	rm -rf config.cache config.status config.log \
+	       autom4te.cache system.h Makefile Rules.mk *~
+
+maintainer-clean:: distclean
+	rm -rf ${top_srcdir}/configure ${top_srcdir}/system.h.in \
+	       ${top_srcdir}/autom4te.cache
+
+dist: ccze.spec
+	test -z "${distdir}" || rm -rf "${distdir}"
+	${MAKE} distdir
+	${MAKE} -C doc distdir
+	${MAKE} -C src distdir
+	${MAKE} -C testsuite distdir
+	${TAR} ${TAR_OPTIONS} -cf - ${PACKAGE}-${VERSION} | \
+	       ${GZIP} ${GZIP_ENV} >${PACKAGE}-${VERSION}.tar.gz
+	test -z "${distdir}" || rm -rf "${distdir}"
+
+distcheck: dist
+	${GZIP} -dfc ${PACKAGE}-${VERSION}.tar.gz | tar ${TAR_OPTIONS} -xf -
+	cd ${PACKAGE}-${VERSION} && ./configure --with-builtins=all
+	${MAKE} -C ${PACKAGE}-${VERSION} all install check dist \
+		DESTDIR=$(shell pwd)/${PACKAGE}-${VERSION}
+	rm -rf ${PACKAGE}-${VERSION}
+	@banner="${PACKAGE}-${VERSION}.tar.gz is ready for distribution." ;\
+	dashes=`echo "$$banner" | sed -e s/./=/g`; \
+	echo "$$dashes" ;\
+	echo "$$banner" ;\
+	echo "$$dashes"
+
+${top_srcdir}/ccze.spec: ccze.spec.in Rules.mk ${top_srcdir}/ChangeLog
+	sed -e "s,@VERSION@,${VERSION},g" -e "s,@DIST@,${DIST},g" \
+	    <$@.in >$@
+
+check: all
+	${MAKE} -C testsuite check
+
+.PHONY: all-recursive

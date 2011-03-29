@@ -1,0 +1,33 @@
+#! /bin/sh
+## bug-sysrepeat.test -- Check if syslog-ng "repeated n times" stuff is ok
+## -*- sh -*-
+## Copyright (C) 2003 Gergely Nagy <algernon@bonehunter.rulez.org>
+##
+## This file is part of CCZE.
+##
+## CCZE is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## CCZE is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+DESCRIPTION="Check if syslog-ngs repeat marker is colorised right"
+PROG_CMDLINE="-F /dev/null -psyslog -o nolookups -d"
+
+# Common definitions
+if test -z "${srcdir}"; then
+	srcdir=`echo "$0" | sed 's,[^/]*$,,'`
+	test "${srcdir}" = "$0" && srcdir=.
+	test -z "${srcdir}" && srcdir=.
+	test "${VERBOSE+set}" != set && VERBOSE=1
+fi
+. ${srcdir}/defs
+. ${srcdir}/do-test

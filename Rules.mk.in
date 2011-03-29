@@ -1,0 +1,90 @@
+## Rules.mk -- Common variables and rules for all Makefiles  -*- Makefile -*-
+
+SHELL		= /bin/sh
+
+PACKAGE		= ccze
+VERSION		= 0.2.${PATCHLEVEL}
+DIST		= stable
+
+PROGRAM		= ${PACKAGE}
+VPATH		= ${srcdir}
+
+## -- User modifiable variables -- ##
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+sysconfdir	= @sysconfdir@
+bindir		= @bindir@
+mandir		= @mandir@
+man1dir		= ${mandir}/man1
+man7dir		= ${mandir}/man7
+libdir		= @libdir@
+includedir	= @includedir@
+pkglibdir	= ${libdir}/${PACKAGE}
+
+CC		= @CC@
+CFLAGS		= @CFLAGS@
+LDFLAGS		= @LDFLAGS@
+TAR		= tar
+GZIP		= gzip
+TAR_OPTIONS	=
+GZIP_ENV	= --best
+
+ETAGS		= etags
+
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+INSTALL_DIR	= @INSTALL@ -d
+EXTRAVERSION	=
+
+## -- Private variables -- ##
+ifeq (${subdir},)
+top_builddir	= .
+else
+top_builddir	= ..
+endif
+builddir	= @builddir@
+
+PATCHLEVEL	= $(shell head -5 ${top_srcdir}/ChangeLog | tail -1 | \
+		    sed -e "s,^.*patch-,,g" -e "s,^.*base-,,g")
+DISTFILES	= ${SOURCES} ${HEADERS} Makefile.in ${TESTS} ${EXTRA_DIST}
+
+## -- Generic rules -- ##
+all:
+
+TAGS:: ${SOURCES} ${HEADERS}
+	test -z "${SOURCES}${HEADERS}" || ${ETAGS} ${SOURCES} ${HEADERS}
+
+mostlyclean clean::
+	rm -f *~ *.o *.so *.da ${PROGRAM} TAGS
+	test -z "${CLEANFILES}" || rm -rf ${CLEANFILES}
+distclean:: clean
+	rm -f Makefile
+	test -z "${DISTCLEANFILES}" || rm -rf ${DISTCLEANFILES}
+maintainer-clean:: distclean
+	test -z "${MAINTCLEANFILES}" || rm -rf ${MAINTCLEANFILES}
+
+distdir = ${top_builddir}/${PACKAGE}-${VERSION}/${subdir}
+distdir: ${DISTFILES}
+	${INSTALL_DIR} ${distdir}
+	@list='${DISTFILES}'; for f in $$list; do \
+		if test -e ${srcdir}/$$f; then \
+			fn=${srcdir}/$$f; \
+		else \
+			fn=$$f; \
+		fi ; \
+		echo cp -p $$fn ${distdir}/$$f ;\
+		cp -p $$fn ${distdir}/$$f ;\
+	done
+
+${top_builddir}/Rules.mk: ${top_srcdir}/Rules.mk.in ${top_builddir}/config.status
+	cd ${top_builddir} && ./config.status
+${builddir}/Makefile: ${srcdir}/Makefile.in ${top_builddir}/config.status
+	cd ${top_builddir} && ./config.status
+
+## -- ${MAKE} control -- ##
+.PHONY: all install clean distclean mostlyclean uninstall maintainer-clean \
+	distdir dist distcheck
+.SUFFIXES:
+.SUFFIXES: .c .o .so
+.DEFAULT: all

@@ -1,0 +1,66 @@
+## -*- shell-script -*-
+## defs - defines the testsuite enviroment
+## Copyright (C) 2003 Gergely Nagy <algernon@bonehunter.rulez.org>
+## Based on defs (as found in The Autobook) by Gary V. Vaughan
+##
+## This file is part of CCZE.
+##
+## CCZE is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## CCZE is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+PACKAGE=${PACKAGE-ccze}
+
+srcdir=${srcdir-.}
+if test ! -d ${srcdir}; then
+	echo "defs: installation error" 1>&2
+	exit 1
+fi
+
+srcdir=`\cd ${srcdir} && pwd`
+top_builddir=`\cd ${top_builddir-..} && pwd`
+
+progname=`echo "$0" | sed 's,^.*/,,'`
+testname=`echo "${progname}" | sed 's,\.test$,,'`
+testsubdir=${testsubdir-test-tmp}
+
+# User can set VERBOSE to prevent output redirection
+TEST_DESC=""
+case x${VERBOSE} in
+	xNO|xno|x0|x)
+		exec 2>/dev/null
+		exec 3>/dev/null
+		;;
+	x1)
+		exec 2>/dev/null
+		exec 3>&1
+		TEST_DESC="${DESCRIPTION}"
+		;;
+	*)
+		TEST_DESC="${DESCRIPTION}"
+		exec 3>&1
+		;;
+esac
+
+rm -rf ${testsubdir} >/dev/null 2>&1
+mkdir ${testsubdir}
+cd ${testsubdir} \
+   || { echo "Cannot make or change into ${testsubdir}"; exit 1; }
+
+echo "=== Running test ${testname}" >&3
+if ! test -z "${TEST_DESC}"; then
+	echo "=== ${TEST_DESC}" >&3
+fi
+
+CMP="${CMP-cmp}"
+RUNPROG="${top_builddir}/src/${PACKAGE}"

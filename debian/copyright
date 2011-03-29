@@ -1,0 +1,29 @@
+CCZE was debianised by by Gergely Nagy <algernon@bonehunter.rulez.org>.
+
+It was downloaded from
+	ftp://bonehunter.rulez.org/pub/ccze/stable/
+
+Upstream Author: Gergely Nagy <algernon@bonehunter.rulez.org>
+
+Copyright:
+
+Copyright 2003-2005 Gergely Nagy <algernon@bonehunter.rulez.org>
+
+License:
+
+   CCZE is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by
+   the Free Software Foundation; version 2 dated June, 1991.
+
+   CCZE is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+   License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this package; if not, write to the Free Software Foundation,
+   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+
+
+On Debian systems, the complete text of the GNU General Public License
+can be found in `/usr/share/common-licenses/GPL'.

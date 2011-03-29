@@ -1,0 +1,189 @@
+.\" Hey Emacs! This is -*- mode: nroff; fill-column: 76 -*-!
+.\" Copyright (C) 2002, 2003 Gergely Nagy <algernon@@bonehunter.rulez.org>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Permission is granted to copy and distribute translations of this
+.\" manual into another language, under the above conditions for modified
+.\" versions, except that this permission notice may be stated in a
+.\" translation approved by the Author.
+.TH CCZE-PLUGIN 7 "2003-03-29" "CCZE @VERSION@" CCZE
+.SH NAME
+ccze \- A robust log colorizer, plugin infrastructure
+.SH SYNOPSIS
+.B #include <ccze.h>
+
+.B /* Plugin support */
+.br
+.BI "typedef void (*" ccze_plugin_startup_t ") (void);"
+.br
+.BI "typedef void (*" ccze_plugin_shutdown_t ") (void);"
+.br
+.BI "typedef int (*" ccze_plugin_handle_t ") (const char *" str ,
+.BI "size_t " length ", char **" rest );
+
+.BI "CCZE_DEFINE_PLUGIN (" name ", " type ", " desc );
+.br
+.BI "CCZE_DEFINE_PLUGINS (" plugins "...);"
+.br
+
+.B /* Display */
+.br
+.BI "void ccze_addstr (ccze_color_t " col ", const char *" str ");"
+.br
+.B void ccze_newline (void);
+.br
+.B void ccze_space (void);
+.br
+.BI "void ccze_wordcolor_process_one (char *" word ", int " slookup ");"
+.br
+
+.B /* Helpers */
+.br
+.BI "ccze_color_t ccze_http_action (const char *" method ");"
+.br
+.BI "void ccze_print_date (const char *" date ");"
+
+.B /* Command line */
+.br
+.BI "char **ccze_plugin_argv_get (const char *" name ");"
+.br
+.BI "const char *ccze_plugin_name_get (void);"
+.SH DESCRIPTION
+This manual page attempts to outline the internals of CCZE plugins:  how
+they work, how they are implemented, and how to add new ones.
+
+There are four required entry points in a plugin: a \fIstartup\fR, a
+\fIshutdown\fR and a \fIhandler\fR routine (more on these later), and an
+informational structure.
+
+The \fIstartup\fR function must be of type \fBccze_plugin_startup_t\fR. This
+is called right after the module is loaded.  Its purpose is to initialise
+all kinds of module\-specific global variables, such as the regular
+expressions.
+
+The \fIshutdown\fR function is its counterpart: this is used to deallocate
+any memory reserved by the \fIstartup\fR code.
+
+The core part of a plugin is the \fIhandler\fR, of type
+\fBccze_plugin_handle_t\fR.  This does the actual coloring.  The string to
+process is passed in the \fIstr\fR argument, its length in \fIlength\fR.
+The third argument, \fIrest\fR is a pointer to a string.  Unlike the first
+two, this argument is used only for output.
+
+When a handler processed a string, it must return a non\-zero value, in case
+it could not process it, the handler must return with zero.  If the string
+could be processed only partially, the part which was deemed unknown by the
+handler must be passed back in the \fIrest\fR variable.
+
+The fourth part, although the smallest part, is the most important. Without
+this, the module is useless, it cannot be loaded.  This part tells CCZE what
+the \fIstartup\fR, \fIshutdown\fR and \fIhandler\fR functions are called.
+
+To encourage good style, the little details of this structure will not be
+disclosed in this manual page.  Instead, the helper macro,
+\fICCZE_DEFINE_PLUGIN\fR will be explained.
+
+\fICCZE_DEFINE_PLUGIN\fR is the macro to use if one wants to make the plugin
+loadable. Its first argument is an unquoted string: the name of the plugin.
+The second part is the type of the plugin, it can be \fIFULL\fR,
+\fIPARTIAL\fR or \fIANY\fR. The last argument is a short description of the
+plugin.
+
+It is assumed that the three functions mentioned earlier are called
+\fIccze_\fBname\fI_setup\fR, \fIccze_\fBname\fI_shutdown\fR and
+\fIccze_\fBname\fI_handle\fR, respectively.
+
+A \fIFULL\fR plugin is one that accepts raw input, untouched by any other
+plugin before, and processes it.  On the other hand, a \fIPARTIAL\fR plugin
+relies on previous ones preprocessing the input.  For example, \fIsyslog\fR
+is a full plugin, on which \fIulogd\fR, a partial plugin relies.  The
+\fIsyslog\fR plugin processes the raw input from the logfile, adds colour to
+most of it, save the actual message sent by a process, that is left to
+subsequent plugins, like \fIulogd\fR. An \fIANY\fR plugin is one can act as
+both other types.
+
+With \fICCZE_DEFINE_PLUGINS\fR one can place more than one plugin into one
+shared object.
+
+There are two other helper functions, \fIccze_plugin_argv_get\fR and
+\fIccze_plugin_name_get\fR. One can pass arguments to CCZE plugins, and
+these is the function to retrieve them. While \fIccze_plugin_name_get\fR
+returns the name of the current plugin, \fIccze_plugin_argv_get\fR returns a
+NULL\-terminated array, with each entry containing an argument.
+.SH "DISPLAY METHODS"
+The so\-called \fIdisplay methods\fR are the \fBonly\fR supported interface
+to emit something to the display. These handle both the normal,
+ncurses\-based, and the HTML output. This is a kind of abstraction so
+plugins will not have to worry about the differences between the output
+formats.
+
+The most important one is \fIccze_addstr\fR, which takes a color (see
+\fIccze.h\fR for a list of supported color tags) and a string, and displays
+it appropriately. The \fIccze_space\fR and \fIccze_newline\fR functions emit
+a space and a newline, respectively.
+
+Our last function, \fIccze_wordcolor_process_one\fR passes \fBword\fR to the
+word colourising engine. If the second argument, \fBslookup\fR is non\-zero,
+the engine will perform service lookups (like \fIgetent\fR and friends).
+.SH "HELPER METHODS"
+We only have two helper methods: \fIccze_print_date\fR, which simply prints
+out the date in the appropriate colour, and \fIccze_http_action\fR, which
+given a HTTP \fBmethod\fR, returns the associated colour, in a format
+suitable for \fIccze_addstr\fR.
+.SH EXAMPLE
+.nf
+#include <ccze.h>
+#include <stddef.h>
+#include <string.h>
+
+static char **ccze_foo_argv;
+
+static int
+ccze_foo_handle (const char *str, size_t length, char **rest)
+{
+  int i = 1;
+
+  if (strstr (str, "foo"))
+    {
+      ccze_addstr (CCZE_COLOR_GOODWORD, str);
+      return 1;
+    }
+
+  while (ccze_foo_argv[i])
+    {
+      if (strstr (str, ccze_foo_argv[i]))
+        {
+          ccze_addstr (CCZE_COLOR_GOODWORD, str);
+          return 1;
+        }
+      i++;
+    }
+  return 0;
+}
+
+static void
+ccze_foo_startup (void)
+{
+  ccze_foo_argv = ccze_plugin_argv_get (ccze_plugin_name_get ());
+}
+
+static void
+ccze_foo_shutdown (void)
+{
+}
+
+CCZE_DEFINE_PLUGIN (foo, PARTIAL, "Partial FOO coloriser.");
+.fi
+.SH "SEE ALSO"
+.BR ccze (1)
+.SH AUTHOR
+ccze was written by Gergely Nagy <algernon@bonehunter.rulez.org>, based on
+colorize by Istvan Karaszi <colorize@spam.raszi.hu>.

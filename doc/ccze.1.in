@@ -1,0 +1,209 @@
+.\" Hey Emacs! This is -*- nroff -*-!
+.\" Copyright (C) 2002, 2003 Gergely Nagy <algernon@@bonehunter.rulez.org>
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one.
+.\"
+.\" Permission is granted to copy and distribute translations of this
+.\" manual into another language, under the above conditions for modified
+.\" versions, except that this permission notice may be stated in a
+.\" translation approved by the Author.
+.TH CCZE 1 "2003-04-24" "CCZE @VERSION@" CCZE
+.SH NAME
+ccze \- A robust log colorizer
+.SH SYNOPSIS
+.B ccze
+.RI [ options "] <" logfile
+.SH DESCRIPTION
+This manual page documents briefly the
+.B ccze
+utility, which is a drop\-in replacement for
+.BR colorize ,
+but written in C, to be faster and less resource\-hungry. The goal was
+to be fully backwards compatible, yet superior with respect to speed
+and features.
+.SH OPTIONS
+These programs follow the usual GNU command line syntax, with long
+options starting with two dashes (`\-'). A summary of options is
+included below.
+.TP
+.B \-a, \-\-argument \fIPLUGIN=ARGUMENTS\fB
+Use this option to pass \fIARGUMENTS\fR to the specified
+\fIPLUGIN\fR. The argument list is whitespace separated.
+.TP
+.B \-A, \-\-raw\-ansi
+If one wants to enable raw ANSI color sequences instead of using
+curses, this option does just that.
+.TP
+.B \-c, \-\-color \fIKEY=COLOR\fB
+Set the color of the keyword \fIKEY\fR to \fICOLOR\fR, like one would
+do in one of the configuration files.
+.TP
+.B \-C, \-\-convert\-date
+Convert unix timestamp to readable date format (in
+oops and squid logs, for example).
+.TP
+.B \-F, \-\-rcfile \fIrcfile\fB
+Read \fIrcfile\fR as a configuration file upon startup, instead of the
+default ones.
+.TP
+.B \-h, \-\-html
+Instead of colorising the input onto the console, output it in HTML
+format instead.
+.TP
+.B \-l, \-\-list\-plugins
+List all available (loaded) plugins, along with their type and a short
+description.
+.TP
+.B \-m, \-\-mode \fImode\fB
+Change the output mode. Available modes are \fIcurses\fR, \fIansi\fR
+and \fIhtml\fR.
+.TP
+.B \-o, \-\-options \fIOPTIONS...\fB
+\fBCCZE\fR is able to toggle some of its features with this
+option. You can toggle the \fIscroll\fR, \fIwordcolor\fR,
+\fIlookups\fR, and \fItransparent\fR features, or you can fiddle with
+\fIcssfile\fR. All of these are enabled by default, except
+\fIcssfile\fR. One can turn them off by prefixing the option with a
+"no".
+
+With \fIscroll\fR, one can enable or disable scrolling. If the output
+is not redirected, it is wise to leave it enabled.
+
+The \fIwordcolor\fR option makes \fBccze\fR search for different
+keywords in unparsed input, and color those too. Since it is quite
+fast, and makes the output look better, it is recommended to leave
+this enabled.
+
+However, \fIlookups\fR is an option that might be better to
+disable. When on, \fBccze\fR will try to look up usernames, service
+names, and lots of other stuff, which will slow down coloring a great
+deal. If one is piping a long log through \fBccze\fR, this option
+might be turned off to speed up the process.
+
+With the \fItransparent\fR option, one can make CCZE treat black
+background colors as transparent \- that means, a black background
+will appear transparent in a similar X terminal. If turned off, it
+will appear as black.
+
+If \fIcssfile\fR is set, then CCZE will not inline the Cascading Style
+Sheet information into the outputted HTML, but include a link to the
+external stylesheet given in this parameter.
+.TP
+.B \-p, \-\-plugin \fIPLUGIN\fR
+While the default action is to load all plugins (see the \fBPlugins\fR
+section below), when this option is present, only the specified
+plugins will be loaded. If one knows what kind of log will be piped
+through \fBccze\fR, using this option may result in a slight speedup.
+.TP
+.B \-r, \-\-remove\-facility
+Syslog\-ng puts the facility level before log messages. With this
+switch, these can be cut off.
+.TP
+.B \-\-help
+Show summary of options and exit.
+.TP
+.B \-V, \-\-version
+Show version of program.
+.SH PLUGINS
+Different programs have different kind of logs, and every kind of log
+\fBccze\fR supports is implemented via a plug\-in. They are by default
+located under \fI@pkglibdir@\fR and \fI$HOME/.ccze\fR (so they can
+be overridden by the user easily).
+
+At the moment, the following modules are bundled with the official
+release:
+.TP
+.IR apm
+For coloring apmd's logs.
+.TP
+.IR distcc
+For coloring distccd's logs. (See \fIdistccd\fR(1))
+.TP
+.IR exim
+For coloring exim's \fImain.log\fR. (See \fIexim\fR(8))
+.TP
+.IR fetchmail
+For coloring fetchmail's log files. (See \fIfetchmail\fR(1))
+.TP
+.IR ftpstats
+For coloring ftpStats compatible log files, such as Pure\-FTPD's
+\fIStats\fR log format.
+.TP
+.IR httpd
+For coloring apache\-style \fIaccess.log\fR and \fIerror.log\fR
+files. (See \fIapache\fR(8))
+
+As a side\-effect, all compatible formats, like \fIpure\-ftpd\fR(8)'s
+common\-log format is also supported by this plugin.
+.TP
+.IR icecast
+For coloring \fIicecast/icecast.log\fR and \fIicecast/usage.log\fR
+files. (See \fIicecast\fR(8))
+.TP
+.IR oops
+For coloring \fIoops/oops.log\fR files.
+.TP
+.IR php
+For coloring \fIphp.log\fR files.
+.TP
+.IR postfix
+For coloring postfix logs. (See \fIpostfix\fR(1))
+.TP
+.IR procmail
+For coloring procmail's log file. (See \fIprocmail\fR(1))
+.TP
+.IR proftpd
+For coloring proftpd's \fIaccess.log\fR and \fIauth.log\fR files. (See
+\fIproftpd\fR(8))
+.TP
+.IR squid
+For coloring squid's \fIaccess.log\fR, \fIstore.log\fR and
+\fIcache.log\fR files. (See \fIsquid\fR(8))
+.TP
+.IR sulog
+For coloring \fIsulog\fR files. (See \fIsu\fR(1))
+.TP
+.IR super
+For coloring \fIsuper.log\fR files. (See \fIsuper\fR(1))
+.TP
+.IR syslog
+For coloring generic syslog messages. (See \fIsyslogd\fR(8))
+.TP
+.IR ulogd
+For coloring ulogd logs.
+.TP
+.IR vsftpd
+For coloring \fIvsftpd.log\fR files. (See \fIvsftpd\fR(8))
+.TP
+.IR xferlog
+For coloring \fIxferlog\fR files. (See \fIxferlog\fR(5))
+.SH FILES
+.TP
+.IR @sysconfdir@/colorizerc ", " $HOME/.colorizerc
+.RS
+These files are the default configuration files for \fBcolorize\fR,
+and are parsed by \fBccze\fR for the sake of full compatibility.
+.RE
+.IR @sysconfdir@/cczerc ", " $HOME/.cczerc
+.RS
+This two are the main configuration files, in which one can change the
+colors used by the program to his liking. See the comments in the
+beginning of \fI@sysconfdir@/cczerc\fR for a description on the files'
+structure.
+
+If neither of these files exist on your system, consider using the
+\fBccze\-dump\fR utility in the source tree, which dumps the default
+color set to standard output.
+.RE
+.SH "SEE ALSO"
+.BR colorize (1)
+.SH AUTHOR
+ccze was written by Gergely Nagy <algernon@bonehunter.rulez.org>,
+based on colorize by Istvan Karaszi <colorize@spam.raszi.hu>.

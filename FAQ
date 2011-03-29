@@ -1,0 +1,64 @@
+CCZE Frequently Asked Questions				-*- outline -*-
+===============================
+
+* Compiling
+
+** CCZE compiles fine, but dies with a relocation error.
+
+There is an issue with CCZE on some GNU/Linux platforms, when PCRE
+gets statically linked into the plugins (RedHat for example). Why this
+is a problem, and how to properly fix it, is beyond me.
+
+However, there is a workaround: When you configure CCZE, pass the
+`--with-builtins=all' option to configure.
+
+* Usage
+
+** I would like to combine two files in one terminal. Can I do that?
+
+Of course! This is just a little bit of shell trickery. Lets suppose
+you want to view your access.log and your xferlog in the same terminal:
+
+server:/var/log# (tail -f apache/access.log & ; tail -f xferlog) | ccze
+
+** I would like to combine two files, but with different options.
+
+This is possible too, once you have a recent enough CCZE (0.1.230 or
+later). Just launch any number of CCZEs in the background, in raw ANSI
+mode, like this:
+
+/var/log# (tail -f apache/access.log | ccze -A -p httpd -o nolookups) &
+/var/log# (tail -f syslog | ccze -A -p syslog) &
+/var/log# tail -f xferlog | ccze -A -p xferlog
+
+** Is there an easy way to follow the html output in a browser? Like tail -f?
+
+Naturally! Although, it is not that simple as a `tail -f'.. Or maybe
+it is.
+
+Anyway: tail -f /var/log/syslog | ccze -h >~/logfiles/syslog.html
+
+And point your browser to ~/logfiles/syslog.html.
+
+A more dynamical approach would be this:
+
+,----[ ccze.cgi ]
+| #! /bin/sh
+| cat <<EOF
+| Content-Type: text/html
+| 
+| EOF
+| 
+| tail -f /var/log${PATH_INFO} | ccze -h
+`----
+
+Then put this file somewhere where your browser can run CGI scripts,
+set execute permissions, and point your browser to
+`ccze.cgi/apache/access.log' for example.
+
+* Extensions
+
+** Where can I find CCZE extensions?
+
+Links to third-party or separately maintained CCZE extensions can be
+found on the CCZE home page at http://bonehunter.rulez.org/CCZE.html.

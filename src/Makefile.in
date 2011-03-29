@@ -1,0 +1,111 @@
+## src/Makefile
+
+## -- User-modifiable variables -- ##
+srcdir		= @srcdir@
+top_srcdir	= @top_srcdir@
+subdir		= src
+
+## == The code below shouldn't need to be touched at all == ##
+
+include ../Rules.mk
+
+## -- Private variables -- ##
+ALL_LDFLAGS	= ${LDFLAGS} ${LIBS}
+
+INCLUDES	= -I. -I${srcdir} -I${top_builddir}
+DEFINES		= -DPATCHLEVEL=\"${PATCHLEVEL}\" -DSYSCONFDIR=\"${sysconfdir}\" \
+		-D_GNU_SOURCE=1 -DPKGLIBDIR=\"${pkglibdir}\" -DHAVE_SYSTEM_H=1 \
+		-DBUILTIN=1
+WFLAGS		= @WFLAGS@
+WFLAGS_GCC	= -Wshadow -Wpointer-arith -Waggregate-return \
+		-Wstrict-prototypes -Wmissing-prototypes -Wcast-qual \
+		-Wbad-function-cast -Wsign-compare -Wchar-subscripts \
+		-Wcomment -Wformat -Wformat-nonliteral -Wformat-security \
+		-Wimplicit -Wmain -Wmissing-braces -Wparentheses \
+		-Wreturn-type -Wswitch \
+		-Wmissing-noreturn -Wmissing-declarations @WFLAGS_3X@
+WFLAGS_ICC	= -Wall -wd193,279,810,869,1418,1419
+WFLAGS_3X	= -Wsequence-point -Wdiv-by-zero -W -Wunused \
+		-Wno-unused-parameter -Wno-unused-function
+ALL_CFLAGS	= ${INCLUDES} ${DEFINES} ${WFLAGS} ${CFLAGS} @PCRE_CFLAGS@
+
+LIBS		= @PCRE_LIBS@ @LIBS@
+
+SOURCES		= ccze.c ccze-color.c ccze-plugin.c ccze-wordcolor.c \
+		$(addprefix mod_,$(addsuffix .c, ${ALL_PLUGINS})) \
+		ccze-dump.c ccze-cssdump.c ccze-compat.c
+HEADERS		= ccze.h ccze-compat.h ccze-private.h
+ALL_PLUGINS	= @ALL_PLUGINS@
+S_PLUGINS	= @S_PLUGINS@
+SH_PLUGINS	= $(filter-out ${S_PLUGINS},${ALL_PLUGINS})
+PLUGIN_SHOBJS	= $(addsuffix .so,${SH_PLUGINS})
+PLUGIN_SOBJS	= $(addsuffix .o,$(addprefix mod_,${S_PLUGINS}))
+PLUGIN_OBJS	= ${PLUGIN_SHOBJS} ${PLUGIN_SOBJS}
+CLEANFILES	= ccze-dump ccze-cssdump
+DISTCLEANFILES	= ccze-builtins.c
+OBJECTS		= ccze.o ccze-color.o ccze-plugin.o ccze-wordcolor.o \
+		ccze-builtins.o ccze-compat.o
+
+## -- Standard targets -- ##
+all: ${PROGRAM} ${PLUGIN_SHOBJS} ccze-dump ccze-cssdump
+
+install: all
+	${INSTALL} -d ${DESTDIR}${bindir}
+	${INSTALL_PROGRAM} ${PROGRAM} ccze-cssdump ${DESTDIR}${bindir}/
+	${INSTALL} -d ${DESTDIR}${includedir}
+	${INSTALL_DATA} ${srcdir}/ccze.h ${DESTDIR}${includedir}
+ifneq (${SH_PLUGINS},)
+	${INSTALL} -d ${DESTDIR}${pkglibdir}
+	${INSTALL_DATA} ${PLUGIN_SHOBJS} ${DESTDIR}${pkglibdir}/
+endif
+
+install-strip:
+	${MAKE} INSTALL_PROGRAM='${INSTALL_PROGRAM} -s' \
+		INSTALL_DATA='${INSTALL_DATA} -s' install
+
+uninstall:
+	rm -f ${DESTDIR}${bindir}/${PROGRAM} \
+	      ${DESTDIR}${bindir}/ccze-cssdump \
+	      ${DESTDIR}${includedir}/ccze.h
+ifneq (${SH_PLUGINS},)
+	rm -f $(addprefix ${DESTDIR}${pkglibdir}/,${PLUGIN_SHOBJS})
+endif
+
+## -- Specific targets -- ##
+${PROGRAM}: ${OBJECTS} ${PLUGIN_SOBJS}
+	${CC} -rdynamic ${ALL_CFLAGS} -o $@ $^ ${ALL_LDFLAGS}
+ccze-dump ccze-cssdump: %: %.o ccze-compat.o ccze-color.c
+	${CC} ${ALL_CFLAGS} -o $@ $@.o ccze-compat.o
+ccze-builtins.c: Makefile
+	echo '#include <ccze.h>' >$@
+	echo '#include "ccze-private.h"' >>$@
+	echo >>$@
+ifneq (${S_PLUGINS},)
+	for p in ${S_PLUGINS}; do \
+		echo "extern ccze_plugin_t ccze_$${p}_info;" >>$@; \
+	done
+endif
+	echo "void" >>$@
+	echo "ccze_plugin_load_all_builtins (void)" >>$@
+	echo "{" >>$@
+ifneq (${S_PLUGINS},)
+	for p in ${S_PLUGINS}; do \
+		echo "  ccze_plugin_add (&ccze_$${p}_info);" >>$@; \
+	done
+endif
+	echo "}" >>$@
+%.o: %.c ccze.h
+	${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
+%.so: mod_%.c ccze.h
+	${CC} -fPIC -DPIC ${ALL_CFLAGS} ${ALL_LDFLAGS} -o $@ $< -shared
+
+## -- Dependencies -- ##
+ccze.o: ccze.c ${top_builddir}/system.h ccze.h ccze-private.h \
+	${top_srcdir}/ChangeLog
+ccze-color.o: ccze-color.c ${top_builddir}/system.h ccze.h ccze-private.h
+ccze-plugin.o: ccze-plugin.c ${top_builddir}/system.h ccze.h ccze-private.h
+ccze-wordcolor.o: ccze-wordcolor.c ${top_builddir}/system.h ccze.h \
+		  ccze-private.h
+ccze-compat.o: ccze-compat.c ${top_builddir}/system.h ccze-compat.h \
+	       ccze.h
+${top_builddir}/system.h: ${top_builddir}/config.status

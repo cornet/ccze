@@ -1,0 +1,93 @@
+#! /usr/bin/make -f
+## Written by Gergely Nagy <algernon@debian.org>
+## This is under GPL v2.
+
+PACKAGE		:= ccze
+PKGDIR		:= ${CURDIR}/debian/${PACKAGE}
+
+CFLAGS		?= -g
+BGT		:= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+HGT		:= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+
+ifneq (,$(findstring noopt,${DEB_BUILD_OPTIONS}))
+CFLAGS		+= -O0
+else
+CFLAGS		+= -O2
+endif
+
+config.status: configure
+	test -e debian/control
+	./configure --prefix=/usr --sysconfdir=/etc \
+				  --mandir=/usr/share/man \
+				  --build=${BGT} --host=${HGT} \
+				  --with-builtins=all ${CONFIG_FLAGS} \
+				  CFLAGS="${CFLAGS}" 
+
+build: config.status
+	test -e debian/control
+	${MAKE}
+
+clean:
+	test -e debian/control && test "x`whoami`" = "xroot"
+	rm -rf debian/${PACKAGE}.substvars ${PKGDIR} debian/files
+ifeq (Makefile,$(wildcard Makefile))
+	${MAKE} distclean
+endif
+	rm -rf ${PKGDIR}
+
+install: build
+	test -e debian/control && test "x`whoami`" = "xroot"
+	install -d ${PKGDIR}/usr/share/doc/${PACKAGE} ${PKGDIR}/etc
+	${MAKE} install DESTDIR=${PKGDIR}
+	install -m 0644 NEWS THANKS FAQ \
+		${PKGDIR}/usr/share/doc/${PACKAGE}/
+	src/ccze-dump >${PKGDIR}/etc/cczerc
+
+binary-ccze: install
+	test -e debian/control && test "x`whoami`" = "xroot"
+## Install debian-specific stuff
+# ..the changelogs..
+	find . -name 'ChangeLog*' -maxdepth 1 -print0 | xargs -r0 -i@ \
+	 sh -c "gzip -9fc @ >${PKGDIR}/usr/share/doc/${PACKAGE}/@.gz"
+	ln -sf ChangeLog.gz ${PKGDIR}/usr/share/doc/${PACKAGE}/changelog.gz
+	gzip -9fc debian/changelog >${PKGDIR}/usr/share/doc/${PACKAGE}/changelog.Debian.gz
+# ..the copyright file..
+	install -m 0644 debian/copyright ${PKGDIR}/usr/share/doc/${PACKAGE}
+## Gzip manual pages and info docs
+	gzip -9f ${PKGDIR}/usr/share/man/man1/ccze.1 \
+		 ${PKGDIR}/usr/share/man/man1/ccze-cssdump.1 \
+		 ${PKGDIR}/usr/share/man/man7/ccze-plugin.7
+## Strip binaries
+ifeq (,$(findstring nostrip,${DEB_BUILD_OPTIONS}))
+	strip --remove-section=.comment --remove-section=.note \
+		${PKGDIR}/usr/bin/ccze ${PKGDIR}/usr/bin/ccze-cssdump
+endif
+## Fix permissions
+	find ${PKGDIR} -print0 2>/dev/null | xargs -0r chown \
+						   --no-dereference 0.0
+	find ${PKGDIR} ! -type l -print 0 2>/dev/null | xargs -0r \
+		chmod go=rX,u+rw,a-s
+## Generate ${shlibs:Depends}
+	dpkg-shlibdeps -Tdebian/${PACKAGE}.substvars -dDepends \
+			${PKGDIR}/usr/bin/ccze \
+			${PKGDIR}/usr/bin/ccze-cssdump
+## Install stuff to DEBIAN/
+	install -d ${PKGDIR}/DEBIAN
+	cd ${PKGDIR} >/dev/null ;\
+	 find etc -type f -printf "/%p\n" >DEBIAN/conffiles
+## Generate DEBIAN/md5sums
+	cd ${PKGDIR} >/dev/null ;\
+	 find * -type f ! -regex '^DEBIAN/.*' -print0 | xargs -r0 md5sum > DEBIAN/md5sums
+## Generate DEBIAN/control
+	dpkg-gencontrol -isp -p${PACKAGE} -Tdebian/${PACKAGE}.substvars \
+			-P${PKGDIR}
+## Build the binary package
+	dpkg --build ${PKGDIR} ..
+
+binary-indep:
+binary-arch: binary-ccze
+
+binary: binary-indep binary-arch
+
+.PHONY: binary binary-arch binary-indep clean build install binary-ccze
+.SUFFIXES:

@@ -1,0 +1,4 @@
+<date>2006-12-01 15:50:14</date><default> </default><keyword>upgrade</keyword><default> </default><pkg>gpgv</pkg><default> </default><default>1.4.5-2</default><default> </default><default>1.4.5-3</default>
+<date>2006-12-01 15:50:20</date><default> </default><keyword>status</keyword><default> </default><pkgstatus>half-installed</pkgstatus><default> </default><pkg>icewm</pkg><default> </default><default>1.2.28-3</default>
+<date>2006-12-01 15:50:22</date><default> </default><keyword>status</keyword><default> </default><pkgstatus>unpacked</pkgstatus><default> </default><pkg>libexif12</pkg><default> </default><default>0.6.13-5</default>
+<date>2006-12-25 12:49:29</date><default> </default><keyword>conffile</keyword><default> </default><file>/etc/postfix/post-install</file><default> </default><keyword>install</keyword>

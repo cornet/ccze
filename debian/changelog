@@ -1,0 +1,133 @@
+ccze (0.2.1-2) unstable; urgency=low
+
+  * Add myself as Maintainer, as Gergely seems to be MIA
+  * Update Standards-Version to 3.7.2 (no changes)
+  * Add support for plus sign in numbers (closes: #416854)
+  * Add support for dpkg logs (closes: #405617)
+  * Don't ignore errors in clean target
+  * reautotool the source, as it was using version from 2002.
+
+ -- Stephen Gran <sgran@debian.org>  Sat, 01 Sep 2007 13:29:01 +0100
+
+ccze (0.2.1-1.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Apply patch for A/V regexes (closes: #345586)
+  * Make debian/copyright pedantically correct (closes: #290082)
+  * Update FSF address
+  * Update to standards version 3.6.2 (no changes necessary)
+  * Allow for extra space in syslog parsing (appears to closes: #330974)
+
+ -- Stephen Gran <sgran@debian.org>  Mon, 17 Apr 2006 20:07:56 +0100
+
+ccze (0.2.1-1.1) unstable; urgency=low
+
+  * NMU
+  * Apply patch to fix FTBFS with gcc-4.0 (closes: #288834, #322985)
+  * Apply patch to fix segfault in parse_opt (closes: #322993)
+  * Man page typo fixes (closes: #307036)
+
+ -- Stephen Gran <sgran@debian.org>  Sun, 30 Oct 2005 20:01:35 +0000
+
+ccze (0.2.1-1) unstable; urgency=low
+
+  * The `Fireflower' release.
+    + Transparency and background-colour support for the ANSI output mode.
+    
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Tue, 13 May 2003 19:43:16 +0200
+
+ccze (0.2.0-1) unstable; urgency=low
+
+  * The `Mephisto' release.
+    + New, raw ANSI output method.
+    + This adds scrollback and backgrounding support.
+    (Closes: #181117, #181891)
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Sat, 29 Mar 2003 18:36:10 +0100
+
+ccze (0.1.228-1) unstable; urgency=low
+
+  * The `Largo' release.
+    + New coloriser for proftpd log files.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Thu, 20 Mar 2003 23:49:38 +0100
+
+ccze (0.1.212-1) unstable; urgency=low
+
+  * The `Avatar' release.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Tue,  4 Mar 2003 19:32:32 +0100
+
+ccze (0.1.200-1) unstable; urgency=low
+
+  * The `Enigma of the Absolute' release.
+    + New coloriser for distccd.log files.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Fri, 21 Feb 2003 11:32:04 +0100
+
+ccze (0.1.171-1) unstable; urgency=low
+
+  * The `Mesmerism' release.
+  * Initial upload to Debian.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Sun,  9 Feb 2003 14:49:54 +0100
+
+ccze (0.1.150-1) unstable; urgency=low
+
+  * The `Cardinal Sin' release.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Tue,  4 Feb 2003 18:00:47 +0100
+
+ccze (0.1.134-1) unstable; urgency=low
+
+  * The `Song of the Dispossessed' release.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Sun, 19 Jan 2003 19:10:57 +0100
+
+ccze (0.1.122-1) unstable; urgency=low
+
+  * The `Wild in The Woods' release.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Mon, 13 Jan 2003 16:50:08 +0100
+
+ccze (0.1.108-1) unstable; urgency=low
+
+  * The `Devorzhum' release
+    + Experimental HTML output.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Fri, 10 Jan 2003 18:34:58 +0100
+
+ccze (0.1.103-1) unstable; urgency=low
+
+  * The `For My Fallen Angel' release.
+    + Support for built-in and partial plugins.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Mon,  2 Dec 2002 20:46:12 +0100
+
+ccze (0.1.91-1) unstable; urgency=low
+
+  * The `Like Gods of the Sun' release.
+    + Shared objects are linked to the appropriate libraries.
+    + Support for colorising ulogd and apmd logs.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Tue, 19 Nov 2002 18:36:40 +0100
+
+ccze (0.1.80-1) unstable; urgency=low
+
+  * The `Stance of Evander Sinque' release.
+    + Exits if no plugins could be loaded.
+
+ -- Gergely Nagy <algernon@bonehunter.rulez.org>  Sat, 12 Oct 2002 23:33:46 +0200
+
+ccze (0.1.72-1) unstable; urgency=low
+
+  * The `Base Level Erotica' release.
+    + Fixed module loading.
+
+ -- Gergely Nagy <algernon@debian.org>  Fri,  4 Oct 2002 12:28:03 +0200
+
+ccze (0.1.70-1) unstable; urgency=low
+
+  * The `Edenbeast' release.
+
+ -- Gergely Nagy <algernon@debian.org>  Thu,  3 Oct 2002 15:33:48 +0200
