@@ -47,7 +47,7 @@ static char *words_good[] = {
 };
 
 static char *words_error[] = {
-  "error", "crit", "invalid", "fail", "false", "alarm", "fatal"
+  "error", "crit", "invalid", "fail", "false", "alarm", "fatal", "exception"
 };
 
 static char *words_system[] = {
