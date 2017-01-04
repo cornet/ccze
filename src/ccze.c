@@ -357,7 +357,7 @@ ccze_print_date (const char *date)
 	  ccze_addstr (CCZE_COLOR_DATE, date);
 	  return;
 	}
-      strftime (tmp, sizeof (tmp) - 1, "%b %e %T", gmtime (&ltime));
+      strftime (tmp, sizeof (tmp) - 1, "%b %e %T %z", localtime(&ltime));
       ccze_addstr (CCZE_COLOR_DATE, tmp);
     }
   else
