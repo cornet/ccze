@@ -22,6 +22,8 @@
 #ifndef _CCZE_H
 #define _CCZE_H 1
 
+#include "error_t.h"
+
 #ifdef HAVE_SYSTEM_H
 # include "system.h"
 #endif

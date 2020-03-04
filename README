@@ -9,3 +9,19 @@ configuration. Type "man ccze" in the shell prompt.
 
 Please visit the official CCZE web page for more information. The URL
 is http://bonehunter.rulez.org/CCZE.html.
+
+** How to compile with alpine docker image**
+
+docker run -it alpine:3.11 sh
+apk --update add git make musl musl-dev gcc pcre-dev ncurses-dev
+mkdir /build && cd /build && git clone https://github.com/sylvainmouquet/ccze
+./configure && make && make install
+
+cat <<EOF > /var/log/test.log
+2018-03-02T22:33:27-06:00 ERROR something happened in this execution.
+2018-03-02T22:33:27-06:00 INFO takes the value and converts it to string.
+2018-03-02T22:33:27-06:00 WARN variable not in use.
+2018-03-02T22:33:27-06:00 DEBUG first loop completed
+EOF
+
+cat /var/log/test.log | ccze -A
