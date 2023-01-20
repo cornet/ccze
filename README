@@ -1,5 +1,5 @@
 This is CCZE, a fast log colorizer written in C, intended to be a
-drop-in replacement for colorize (http://colorize.raszi.hu).
+drop-in replacement for colorize (https://github.com/raszi/colorize).
 
 See the NEWS file for a description of recent changes to CCZE.
 
