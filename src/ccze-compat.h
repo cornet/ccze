@@ -23,11 +23,21 @@
 #define _CCZE_COMPAT_H 1
 
 #include "system.h"
+typedef int error_t;
+int getsubopt(char **optionp, char *const *tokens, char **valuep);
 
 #include <sys/types.h>
+typedef int error_t;
+int getsubopt(char **optionp, char *const *tokens, char **valuep);
 #include <errno.h>
+typedef int error_t;
+int getsubopt(char **optionp, char *const *tokens, char **valuep);
 #include <stddef.h>
+typedef int error_t;
+int getsubopt(char **optionp, char *const *tokens, char **valuep);
 #include <stdio.h>
+typedef int error_t;
+int getsubopt(char **optionp, char *const *tokens, char **valuep);
 
 #ifndef HAVE_STRNDUP
 char *strndup (const char *s, size_t size);

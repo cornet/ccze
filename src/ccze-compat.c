@@ -275,7 +275,7 @@ ccze_getsubopt (char **optionp, char *const *tokens,
 		char **valuep)
 {
   int i = getsubopt (optionp, tokens, valuep);
-#if HAVE_SUBOPTARg
+#if HAVE_SUBOPTARG
   if (!*valuep && suboptarg)
     *valuep = strdup (suboptarg);
 #endif
