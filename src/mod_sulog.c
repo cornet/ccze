@@ -26,19 +26,18 @@ static void ccze_sulog_setup (void);
 static void ccze_sulog_shutdown (void);
 static int ccze_sulog_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_sulog;
-static pcre_extra *hints_sulog;
+static ccze_regex_t *reg_sulog;
 
 static char *
 ccze_sulog_process (const char *str, int *offsets, int match)
 {
   char *date, *islogin, *tty, *fromuser, *touser;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&islogin);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&tty);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&fromuser);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&touser);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&islogin);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&tty);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&fromuser);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&touser);
 
   ccze_addstr (CCZE_COLOR_DEFAULT, "SU ");
   ccze_addstr (CCZE_COLOR_DATE, date);
@@ -73,20 +72,15 @@ ccze_sulog_process (const char *str, int *offsets, int match)
 static void
 ccze_sulog_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_sulog = pcre_compile ("^SU (\\d{2}\\/\\d{2} \\d{2}:\\d{2}) ([\\+\\-]) "
-			    "(\\S+) ([^\\-]+)-(.*)$", 0, &error, &errptr,
-			    NULL);
-  hints_sulog = pcre_study (reg_sulog, 0, &error);
+  reg_sulog = ccze_regex_compile ("^SU (\\d{2}\\/\\d{2} \\d{2}:\\d{2}) ([\\+\\-]) "
+			    "(\\S+) ([^\\-]+)-(.*)$");
 }
 
 static void
 ccze_sulog_shutdown (void)
 {
-  free (reg_sulog);
-  free (hints_sulog);
+  ccze_regex_free (reg_sulog);
 }
 
 static int
@@ -94,8 +88,7 @@ ccze_sulog_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_sulog, hints_sulog, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_sulog, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_sulog_process (str, offsets, match);
       return 1;

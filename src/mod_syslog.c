@@ -29,8 +29,8 @@ static void ccze_syslog_setup (void);
 static void ccze_syslog_shutdown (void);
 static int ccze_syslog_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_syslog;
-static pcre_extra *hints_syslog;
+static ccze_regex_t *reg_syslog;
+
 
 static char *
 ccze_syslog_process (const char *str, int *offsets, int match)
@@ -38,17 +38,17 @@ ccze_syslog_process (const char *str, int *offsets, int match)
   char *date = NULL, *host = NULL, *send = NULL, *process = NULL;
   char *msg = NULL, *pid = NULL, *tmp = NULL, *toret;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&host);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&send);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&host);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&send);
   
   if ((strstr (send, "last message repeated") && strstr (send, "times")) ||
       (strstr (send, "-- MARK --")))
     msg = strdup (send);
   else
     {
-      pcre_get_substring (str, offsets, match, 4, (const char **)&process);
-      pcre_get_substring (str, offsets, match, 5, (const char **)&msg);
+      ccze_regex_substring (str, offsets, match, 4, (const char **)&process);
+      ccze_regex_substring (str, offsets, match, 5, (const char **)&msg);
     }
       
   if (process)
@@ -100,20 +100,16 @@ ccze_syslog_process (const char *str, int *offsets, int match)
 static void
 ccze_syslog_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_syslog = pcre_compile ("^(\\S*\\s{1,2}\\d{1,2}\\s\\d\\d:\\d\\d:\\d\\d)"
-			     "\\s(\\S+)\\s+((\\S+:?)\\s(.*))$", 0, &error,
-			     &errptr, NULL);
-  hints_syslog = pcre_study (reg_syslog, 0, &error);
+
+  reg_syslog = ccze_regex_compile ("^(\\S*\\s{1,2}\\d{1,2}\\s\\d\\d:\\d\\d:\\d\\d)"
+			     "\\s(\\S+)\\s+((\\S+:?)\\s(.*))$");
 }
 
 static void
 ccze_syslog_shutdown (void)
 {
-  free (reg_syslog);
-  free (hints_syslog);
+  ccze_regex_free (reg_syslog);
 }
 
 static int
@@ -121,8 +117,7 @@ ccze_syslog_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_syslog, hints_syslog, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_syslog, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_syslog_process (str, offsets, match);
       return 1;

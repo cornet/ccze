@@ -29,9 +29,9 @@
 #include "ccze-private.h"
 #include "ccze-compat.h"
 
-static pcre *reg_pre, *reg_post, *reg_host, *reg_mac, *reg_email;
-static pcre *reg_uri, *reg_size, *reg_ver, *reg_time, *reg_addr;
-static pcre *reg_num, *reg_sig, *reg_email2, *reg_hostip, *reg_msgid;
+static ccze_regex_t *reg_pre, *reg_post, *reg_host, *reg_mac, *reg_email;
+static ccze_regex_t *reg_uri, *reg_size, *reg_ver, *reg_time, *reg_addr;
+static ccze_regex_t *reg_num, *reg_sig, *reg_email2, *reg_hostip, *reg_msgid;
 
 static char *words_bad[] = {
   "warn", "restart", "exit", "stop", "end", "shutting", "down", "close",
@@ -80,11 +80,10 @@ ccze_wordcolor_process_one (char *word, int slookup)
   col = CCZE_COLOR_DEFAULT;
 
   /** prefix **/
-  if ((match = pcre_exec (reg_pre, NULL, word, strlen (word), 0, 0,
-			  offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_pre, word, strlen (word), offsets, 99)) >= 0)
     {
-      pcre_get_substring (word, offsets, match, 1, (const char **)&pre);
-      pcre_get_substring (word, offsets, match, 2, (const char **)&tmp);
+      ccze_regex_substring (word, offsets, match, 1, (const char **)&pre);
+      ccze_regex_substring (word, offsets, match, 2, (const char **)&tmp);
       free (word);
       word = tmp;
     }
@@ -92,11 +91,10 @@ ccze_wordcolor_process_one (char *word, int slookup)
     pre = NULL;
 
   /** postfix **/
-  if ((match = pcre_exec (reg_post, NULL, word, strlen (word), 0, 0,
-			  offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_post, word, strlen (word), offsets, 99)) >= 0)
     {
-      pcre_get_substring (word, offsets, match, 1, (const char **)&tmp);
-      pcre_get_substring (word, offsets, match, 2, (const char **)&post);
+      ccze_regex_substring (word, offsets, match, 1, (const char **)&tmp);
+      ccze_regex_substring (word, offsets, match, 2, (const char **)&post);
       free (word);
       word = tmp;
     }
@@ -107,45 +105,44 @@ ccze_wordcolor_process_one (char *word, int slookup)
   lword = _stolower (word);
       
   /** Host **/
-  if (pcre_exec (reg_host, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  if (ccze_regex_match (reg_host, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_HOST;
   /** MAC address **/
-  else if (pcre_exec (reg_mac, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_mac, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_MAC;
   /** Directory **/
   else if (lword[0] == '/')
     col = CCZE_COLOR_DIR;
   /** E-mail **/
-  else if (pcre_exec (reg_email, NULL, lword, wlen, 0, 0, offsets, 99)
-	   >= 0 && pcre_exec (reg_email2, NULL, lword, wlen, 0, 0,
-			      offsets,99) >= 0)
+  else if (ccze_regex_match (reg_email, lword, wlen, offsets, 99)
+	   >= 0 && ccze_regex_match (reg_email2, lword, wlen, offsets,99) >= 0)
     col = CCZE_COLOR_EMAIL;
   /** Message-ID **/
-  else if (pcre_exec (reg_msgid, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_msgid, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_EMAIL;
   /** URI **/
-  else if (pcre_exec (reg_uri, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_uri, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_URI;
   /** Size **/
-  else if (pcre_exec (reg_size, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_size, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_SIZE;
   /** Version **/
-  else if (pcre_exec (reg_ver, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_ver, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_VERSION;
   /** Time **/
-  else if (pcre_exec (reg_time, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_time, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_DATE;
   /** Address **/
-  else if (pcre_exec (reg_addr, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_addr, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_ADDRESS;
   /** Number **/
-  else if (pcre_exec (reg_num, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_num, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_NUMBERS;
   /** Signal **/
-  else if (pcre_exec (reg_sig, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_sig, lword, wlen, offsets, 99) >= 0)
     col = CCZE_COLOR_SIGNAL;
   /* Host + IP (postfix) */
-  else if (pcre_exec (reg_hostip, NULL, lword, wlen, 0, 0, offsets, 99) >= 0)
+  else if (ccze_regex_match (reg_hostip, lword, wlen, offsets, 99) >= 0)
     {
       char *host, *ip;
       size_t hostlen, iplen;
@@ -260,64 +257,51 @@ ccze_wordcolor_process (const char *msg, int wcol, int slookup)
 void
 ccze_wordcolor_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_pre = pcre_compile ("^([`'\".,!?:;(\\[{<]+)([^`'\".,!?:;(\\[{<]\\S*)$",
-			  0, &error, &errptr, NULL);
-  reg_post = pcre_compile ("^(\\S*[^`'\".,!?:;)\\]}>])([`'\".,!?:;)\\]}>]+)$",
-			   0, &error, &errptr, NULL);
-  reg_host = pcre_compile ("^(((\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})|"
+
+  reg_pre = ccze_regex_compile ("^([`'\".,!?:;(\\[{<]+)([^`'\".,!?:;(\\[{<]\\S*)$");
+  reg_post = ccze_regex_compile ("^(\\S*[^`'\".,!?:;)\\]}>])([`'\".,!?:;)\\]}>]+)$");
+  reg_host = ccze_regex_compile ("^(((\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})|"
 			   "(([a-z0-9-_]+\\.)+[a-z]{2,3})|(localhost)|"
-			   "(\\w*::\\w+)+)(:\\d{1,5})?)$", 0, &error,
-			   &errptr, NULL);
-  reg_hostip = pcre_compile ("^(((\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})|"
+			   "(\\w*::\\w+)+)(:\\d{1,5})?)$");
+  reg_hostip = ccze_regex_compile ("^(((\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})|"
 			     "(([a-z0-9-_\\.]+)+)|(localhost)|"
 			     "(\\w*::\\w+)+)(:\\d{1,5})?)"
-			     "\\[",
-			     0, &error,  &errptr, NULL);
-  reg_mac = pcre_compile ("^([0-9a-f]{2}:){5}[0-9a-f]{2}$", 0, &error,
-			  &errptr, NULL);
-  reg_email = pcre_compile
-    ("^[a-z0-9-_=\\+]+@([a-z0-9-_\\.]+)+(\\.[a-z]{2,4})+", 0,
-     &error, &errptr, NULL);
-  reg_email2 = pcre_compile ("(\\.[a-z]{2,4})+$", 0, &error, &errptr, NULL);
-  reg_uri = pcre_compile ("^\\w{2,}:\\/\\/(\\S+\\/?)+$", 0, &error,
-			  &errptr, NULL);
-  reg_size = pcre_compile ("^\\d+(\\.\\d+)?[k|m|g|t]i?b?(ytes?)?",
-			   0, &error, &errptr, NULL);
-  reg_ver = pcre_compile ("^v?(\\d+\\.){1}((\\d|[a-z])+\\.)*(\\d|[a-z])+$",
-			  0, &error, &errptr, NULL);
-  reg_time = pcre_compile ("\\d{1,2}:\\d{1,2}(:\\d{1,2})?", 0, &error,
-			   &errptr, NULL);
-  reg_addr = pcre_compile ("^0x(\\d|[a-f])+$", 0, &error, &errptr, NULL);
-  reg_num = pcre_compile ("^[+-]?\\d+$", 0, &error, &errptr, NULL);
-  reg_sig = pcre_compile ("^sig(hup|int|quit|ill|abrt|fpe|kill|segv|pipe|"
+			     "\\[");
+  reg_mac = ccze_regex_compile ("^([0-9a-f]{2}:){5}[0-9a-f]{2}$");
+  reg_email = ccze_regex_compile
+    ("^[a-z0-9-_=\\+]+@([a-z0-9-_\\.]+)+(\\.[a-z]{2,4})+");
+  reg_email2 = ccze_regex_compile ("(\\.[a-z]{2,4})+$");
+  reg_uri = ccze_regex_compile ("^\\w{2,}:\\/\\/(\\S+\\/?)+$");
+  reg_size = ccze_regex_compile ("^\\d+(\\.\\d+)?[k|m|g|t]i?b?(ytes?)?");
+  reg_ver = ccze_regex_compile ("^v?(\\d+\\.){1}((\\d|[a-z])+\\.)*(\\d|[a-z])+$");
+  reg_time = ccze_regex_compile ("\\d{1,2}:\\d{1,2}(:\\d{1,2})?");
+  reg_addr = ccze_regex_compile ("^0x(\\d|[a-f])+$");
+  reg_num = ccze_regex_compile ("^[+-]?\\d+$");
+  reg_sig = ccze_regex_compile ("^sig(hup|int|quit|ill|abrt|fpe|kill|segv|pipe|"
 			  "alrm|term|usr1|usr2|chld|cont|stop|tstp|tin|tout|"
 			  "bus|poll|prof|sys|trap|urg|vtalrm|xcpu|xfsz|iot|"
-			  "emt|stkflt|io|cld|pwr|info|lost|winch|unused)", 0,
-			  &error, &errptr, NULL);
-  reg_msgid = pcre_compile
-    ("^[a-z0-9-_\\.\\$=\\+]+@([a-z0-9-_\\.]+)+(\\.?[a-z]+)+", 0, &error,
-     &errptr, NULL);
+			  "emt|stkflt|io|cld|pwr|info|lost|winch|unused)");
+  reg_msgid = ccze_regex_compile
+    ("^[a-z0-9-_\\.\\$=\\+]+@([a-z0-9-_\\.]+)+(\\.?[a-z]+)+");
 }
 
 void
 ccze_wordcolor_shutdown (void)
 {
-  free (reg_pre);
-  free (reg_post);
-  free (reg_host);
-  free (reg_mac);
-  free (reg_email);
-  free (reg_email2);
-  free (reg_uri);
-  free (reg_size);
-  free (reg_ver);
-  free (reg_time);
-  free (reg_addr);
-  free (reg_num);
-  free (reg_sig);
-  free (reg_hostip);
-  free (reg_msgid);
+  ccze_regex_free (reg_pre);
+  ccze_regex_free (reg_post);
+  ccze_regex_free (reg_host);
+  ccze_regex_free (reg_mac);
+  ccze_regex_free (reg_email);
+  ccze_regex_free (reg_email2);
+  ccze_regex_free (reg_uri);
+  ccze_regex_free (reg_size);
+  ccze_regex_free (reg_ver);
+  ccze_regex_free (reg_time);
+  ccze_regex_free (reg_addr);
+  ccze_regex_free (reg_num);
+  ccze_regex_free (reg_sig);
+  ccze_regex_free (reg_hostip);
+  ccze_regex_free (reg_msgid);
 }

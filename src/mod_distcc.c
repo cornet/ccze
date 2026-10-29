@@ -29,17 +29,17 @@ static void ccze_distcc_setup (void);
 static void ccze_distcc_shutdown (void);
 static int ccze_distcc_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_distcc;
-static pcre_extra *hints_distcc;
+static ccze_regex_t *reg_distcc;
+
 
 static char *
 ccze_distcc_process (const char *str, int *offsets, int match)
 {
   char *pid, *func, *rest;
     
-  pcre_get_substring (str, offsets, match, 1, (const char **)&pid);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&func);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&rest);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&pid);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&func);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&rest);
   
   ccze_addstr (CCZE_COLOR_PROC, "distccd");
   ccze_addstr (CCZE_COLOR_PIDB, "[");
@@ -62,19 +62,15 @@ ccze_distcc_process (const char *str, int *offsets, int match)
 static void
 ccze_distcc_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_distcc = pcre_compile ("^distccd\\[(\\d+)\\] (\\([^\\)]+\\))? ?(.*)",
-			     0, &error, &errptr, NULL);
-  hints_distcc = pcre_study (reg_distcc, 0, &error);
+
+  reg_distcc = ccze_regex_compile ("^distccd\\[(\\d+)\\] (\\([^\\)]+\\))? ?(.*)");
 }
 
 static void
 ccze_distcc_shutdown (void)
 {
-  free (reg_distcc);
-  free (hints_distcc);
+  ccze_regex_free (reg_distcc);
 }
 
 static int
@@ -82,8 +78,7 @@ ccze_distcc_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_distcc, hints_distcc, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_distcc, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_distcc_process (str, offsets, match);
       return 1;

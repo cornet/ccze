@@ -29,7 +29,7 @@ static void ccze_postfix_setup (void);
 static void ccze_postfix_shutdown (void);
 static int ccze_postfix_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_postfix;
+static ccze_regex_t *reg_postfix;
 
 static int
 _ccze_postfix_process_one (const char *s, char **rest)
@@ -58,9 +58,9 @@ ccze_postfix_process (const char *str, int *offsets, int match)
   char *spoolid, *s, *rest, *tmp;
   int r;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&spoolid);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&s);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&rest);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&spoolid);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&s);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&rest);
 
   ccze_addstr (CCZE_COLOR_UNIQN, spoolid);
   ccze_addstr (CCZE_COLOR_DEFAULT, ": ");
@@ -84,18 +84,16 @@ ccze_postfix_process (const char *str, int *offsets, int match)
 static void
 ccze_postfix_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_postfix = pcre_compile
-    ("^([\\dA-F]+): ((client|to|message-id|uid|resent-message-id|from)(=.*))",
-     0, &error, &errptr, NULL);
+
+  reg_postfix = ccze_regex_compile
+    ("^([\\dA-F]+): ((client|to|message-id|uid|resent-message-id|from)(=.*))");
 }
 
 static void
 ccze_postfix_shutdown (void)
 {
-  free (reg_postfix);
+  ccze_regex_free (reg_postfix);
 }
 
 static int
@@ -103,8 +101,7 @@ ccze_postfix_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_postfix, NULL, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_postfix, str, length, offsets, 99)) >= 0)
     {
       if (rest)
 	*rest = ccze_postfix_process (str, offsets, match);

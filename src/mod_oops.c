@@ -29,21 +29,21 @@ static void ccze_oops_setup (void);
 static void ccze_oops_shutdown (void);
 static int ccze_oops_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_oops;
-static pcre_extra *hints_oops;
+static ccze_regex_t *reg_oops;
+
 
 static char *
 ccze_oops_process (const char *str, int *offsets, int match)
 {
   char *date, *sp1, *id, *field, *sp2, *value, *etc;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&sp1);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&id);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&field);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&sp2);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&value);
-  pcre_get_substring (str, offsets, match, 9, (const char **)&etc);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&sp1);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&id);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&field);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&sp2);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&value);
+  ccze_regex_substring (str, offsets, match, 9, (const char **)&etc);
   
   ccze_addstr (CCZE_COLOR_DATE, date);
   ccze_addstr (CCZE_COLOR_DEFAULT, sp1);
@@ -79,23 +79,19 @@ ccze_oops_process (const char *str, int *offsets, int match)
 static void
 ccze_oops_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_oops = pcre_compile
+
+  reg_oops = ccze_regex_compile
     ("^((Mon|Tue|Wed|Thu|Fri|Sat|Sun) "
      "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) "
      "\\d+ \\d+:\\d+:\\d+ \\d+)(\\s+)\\[([\\dxa-fA-F]+)\\]"
-     "statistics\\(\\): ([\\S]+)(\\s*): (\\d+)(.*)",
-     0, &error, &errptr, NULL);
-  hints_oops = pcre_study (reg_oops, 0, &error);
+     "statistics\\(\\): ([\\S]+)(\\s*): (\\d+)(.*)");
 }
 
 static void
 ccze_oops_shutdown (void)
 {
-  free (reg_oops);
-  free (hints_oops);
+  ccze_regex_free (reg_oops);
 }
 
 static int
@@ -103,8 +99,7 @@ ccze_oops_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_oops, hints_oops, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_oops, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_oops_process (str, offsets, match);
       return 1;

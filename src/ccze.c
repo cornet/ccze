@@ -252,7 +252,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       subopts = arg;
       while (*subopts != '\0')
 	{
-	  switch (getsubopt (&subopts, m_subopts, &value))
+	  switch (ccze_getsubopt (&subopts, m_subopts, &value))
 	    {
 	    case CCZE_M_SUBOPT_CURSES:
 	      ccze_config.mode = CCZE_MODE_CURSES;
@@ -276,7 +276,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       subopts = arg;
       while (*subopts != '\0')
 	{
-	  switch (getsubopt (&subopts, o_subopts, &value))
+	  switch (ccze_getsubopt (&subopts, o_subopts, &value))
 	    {
 	    case CCZE_O_SUBOPT_SCROLL:
 	      ccze_config.scroll = 1;

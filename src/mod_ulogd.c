@@ -29,7 +29,7 @@ static void ccze_ulogd_setup (void);
 static void ccze_ulogd_shutdown (void);
 static int ccze_ulogd_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_ulogd;
+static ccze_regex_t *reg_ulogd;
 
 static char *
 ccze_ulogd_process (const char *msg)
@@ -64,18 +64,16 @@ ccze_ulogd_process (const char *msg)
 static void
 ccze_ulogd_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_ulogd = pcre_compile
-    ("(IN|OUT|MAC|TTL|SRC|TOS|PREC|SPT)=", 0, &error,
-     &errptr, NULL);
+
+  reg_ulogd = ccze_regex_compile
+    ("(IN|OUT|MAC|TTL|SRC|TOS|PREC|SPT)=");
 }
 
 static void
 ccze_ulogd_shutdown (void)
 {
-  free (reg_ulogd);
+  ccze_regex_free (reg_ulogd);
 }
 
 static int
@@ -83,7 +81,7 @@ ccze_ulogd_handle (const char *str, size_t length, char **rest)
 {
   int offsets[10];
   
-  if (pcre_exec (reg_ulogd, NULL, str, length, 0, 0, offsets, 2) >= 0)
+  if (ccze_regex_match (reg_ulogd, str, length, offsets, 2) >= 0)
     {
       if (rest)
 	*rest = ccze_ulogd_process (str);

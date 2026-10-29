@@ -29,8 +29,8 @@ static void ccze_icecast_setup (void);
 static void ccze_icecast_shutdown (void);
 static int ccze_icecast_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_icecast, *reg_icecast_usage;
-static pcre_extra *hints_icecast, *hints_icecast_usage;
+static ccze_regex_t *reg_icecast, *reg_icecast_usage;
+
 
 static char *
 ccze_icecast_process (const char *str, int *offsets, int match)
@@ -38,11 +38,11 @@ ccze_icecast_process (const char *str, int *offsets, int match)
   char *date = NULL, *admin = NULL, *threadno = NULL, *thread = NULL;
   char *rest = NULL;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&admin);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&threadno);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&thread);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&rest);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&admin);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&threadno);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&thread);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&rest);
   
   ccze_addstr (CCZE_COLOR_DATE, date);
   ccze_space ();
@@ -79,15 +79,15 @@ ccze_icecast_usage_process (const char *str, int *offsets, int match)
   char *date, *threadno, *thread, *date2, *bw, *src;
   char *unit, *clients, *admins;
     
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&threadno);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&thread);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&date2);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&bw);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&unit);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&src);
-  pcre_get_substring (str, offsets, match, 9, (const char **)&clients);
-  pcre_get_substring (str, offsets, match, 10, (const char **)&admins);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&threadno);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&thread);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&date2);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&bw);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&unit);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&src);
+  ccze_regex_substring (str, offsets, match, 9, (const char **)&clients);
+  ccze_regex_substring (str, offsets, match, 10, (const char **)&admins);
   
   
   ccze_addstr (CCZE_COLOR_DATE, date);
@@ -137,31 +137,25 @@ ccze_icecast_usage_process (const char *str, int *offsets, int match)
 static void
 ccze_icecast_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_icecast = pcre_compile ("^(\\[\\d+/.../\\d+:\\d+:\\d+:\\d+\\]) "
-			      "(Admin)? *(\\[(\\d+)?:?([^\\]]*)\\]) (.*)$",
-			  0, &error, &errptr, NULL);
-  hints_icecast = pcre_study (reg_icecast, 0, &error);
 
-  reg_icecast_usage = pcre_compile ("^(\\[\\d+/.../\\d+:\\d+:\\d+:\\d+\\]) "
+  reg_icecast = ccze_regex_compile ("^(\\[\\d+/.../\\d+:\\d+:\\d+:\\d+\\]) "
+			      "(Admin)? *(\\[(\\d+)?:?([^\\]]*)\\]) (.*)$");
+
+
+  reg_icecast_usage = ccze_regex_compile ("^(\\[\\d+/.../\\d+:\\d+:\\d+:\\d+\\]) "
 				    "(\\[(\\d+):([^\\]]*)\\]) "
 				    "(\\[\\d+/.../\\d+:\\d+:\\d+:\\d+\\]) "
 				    "Bandwidth:([\\d\\.]+)([^ ]*) "
 				    "Sources:(\\d+) "
-				    "Clients:(\\d+) Admins:(\\d+)",
-				    0, &error, &errptr, NULL);
-  hints_icecast_usage = pcre_study (reg_icecast_usage, 0, &error);
+				    "Clients:(\\d+) Admins:(\\d+)");
 }
 
 static void
 ccze_icecast_shutdown (void)
 {
-  free (reg_icecast);
-  free (hints_icecast);
-  free (reg_icecast_usage);
-  free (hints_icecast_usage);
+  ccze_regex_free (reg_icecast);
+  ccze_regex_free (reg_icecast_usage);
 }
 
 static int
@@ -169,15 +163,13 @@ ccze_icecast_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
 
-  if ((match = pcre_exec (reg_icecast_usage, hints_icecast_usage,
-			  str, length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_icecast_usage, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_icecast_usage_process (str, offsets, match);
       return 1;
     }
   
-  if ((match = pcre_exec (reg_icecast, hints_icecast, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_icecast, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_icecast_process (str, offsets, match);
       return 1;

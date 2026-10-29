@@ -29,16 +29,16 @@ static void ccze_php_setup (void);
 static void ccze_php_shutdown (void);
 static int ccze_php_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_php;
-static pcre_extra *hints_php;
+static ccze_regex_t *reg_php;
+
 
 static char *
 ccze_php_process (const char *str, int *offsets, int match)
 {
   char *date = NULL, *rest = NULL;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&rest);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&rest);
   
   ccze_addstr (CCZE_COLOR_DATE, date);
   ccze_space ();
@@ -53,19 +53,15 @@ ccze_php_process (const char *str, int *offsets, int match)
 static void
 ccze_php_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_php = pcre_compile ("^(\\[\\d+-...-\\d+ \\d+:\\d+:\\d+\\]) PHP (.*)$",
-			  0, &error, &errptr, NULL);
-  hints_php = pcre_study (reg_php, 0, &error);
+
+  reg_php = ccze_regex_compile ("^(\\[\\d+-...-\\d+ \\d+:\\d+:\\d+\\]) PHP (.*)$");
 }
 
 static void
 ccze_php_shutdown (void)
 {
-  free (reg_php);
-  free (hints_php);
+  ccze_regex_free (reg_php);
 }
 
 static int
@@ -73,8 +69,7 @@ ccze_php_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_php, hints_php, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_php, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_php_process (str, offsets, match);
       return 1;

@@ -26,8 +26,8 @@ static void ccze_xferlog_setup (void);
 static void ccze_xferlog_shutdown (void);
 static int ccze_xferlog_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_xferlog;
-static pcre_extra *hints_xferlog;
+static ccze_regex_t *reg_xferlog;
+
 
 static char *
 ccze_xferlog_log_process (const char *str, int *offsets, int match)
@@ -36,20 +36,20 @@ ccze_xferlog_log_process (const char *str, int *offsets, int match)
   char *actionflag, *direction, *amode, *user, *service, *amethod;
   char *auid, *status;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&curtime);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&transtime);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&host);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&fsize);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&fname);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&transtype);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&actionflag);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&direction);
-  pcre_get_substring (str, offsets, match, 9, (const char **)&amode);
-  pcre_get_substring (str, offsets, match, 10, (const char **)&user);
-  pcre_get_substring (str, offsets, match, 11, (const char **)&service);
-  pcre_get_substring (str, offsets, match, 12, (const char **)&amethod);
-  pcre_get_substring (str, offsets, match, 13, (const char **)&auid);
-  pcre_get_substring (str, offsets, match, 14, (const char **)&status);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&curtime);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&transtime);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&host);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&fsize);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&fname);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&transtype);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&actionflag);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&direction);
+  ccze_regex_substring (str, offsets, match, 9, (const char **)&amode);
+  ccze_regex_substring (str, offsets, match, 10, (const char **)&user);
+  ccze_regex_substring (str, offsets, match, 11, (const char **)&service);
+  ccze_regex_substring (str, offsets, match, 12, (const char **)&amethod);
+  ccze_regex_substring (str, offsets, match, 13, (const char **)&auid);
+  ccze_regex_substring (str, offsets, match, 14, (const char **)&status);
   
   ccze_addstr (CCZE_COLOR_DATE, curtime);
   ccze_space ();
@@ -102,23 +102,19 @@ ccze_xferlog_log_process (const char *str, int *offsets, int match)
 static void
 ccze_xferlog_setup (void)
 {
-  const char *error;
-  int errptr;
+
 
   /* FIXME: Does not handle spaces in filenames! */
-  reg_xferlog = pcre_compile
+  reg_xferlog = ccze_regex_compile
     ("^(... ... +\\d{1,2} +\\d{1,2}:\\d{1,2}:\\d{1,2} \\d+) (\\d+) ([^ ]+) "
      "(\\d+) (\\S+) (a|b) (C|U|T|_) (o|i) (a|g|r) ([^ ]+) ([^ ]+) " 
-     "(0|1) ([^ ]+) (c|i)", 0, &error,
-     &errptr, NULL);
-  hints_xferlog = pcre_study (reg_xferlog, 0, &error);
+     "(0|1) ([^ ]+) (c|i)");
 }
 
 static void
 ccze_xferlog_shutdown (void)
 {
-  free (reg_xferlog);
-  free (hints_xferlog);
+  ccze_regex_free (reg_xferlog);
 }
 
 static int
@@ -126,8 +122,7 @@ ccze_xferlog_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_xferlog, hints_xferlog, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_xferlog, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_xferlog_log_process (str, offsets, match);
       return 1;

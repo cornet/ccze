@@ -1,6 +1,54 @@
 This is CCZE, a fast log colorizer written in C, intended to be a
 drop-in replacement for colorize (http://colorize.raszi.hu).
 
+macOS build (Apple Silicon or Intel)
+-----------------------------------
+
+Install the Xcode Command Line Tools if `cc --version` is unavailable
+(`xcode-select --install`), then install the regex dependency with Homebrew:
+
+    brew install pcre2
+
+From the source directory, build and install without sudo:
+
+    ./configure --prefix="$HOME/.local" --with-builtins=all
+    make
+    make check
+    make install
+
+`make install` creates $HOME/.local and the required subdirectories if
+needed. You do not need to create them manually.
+
+Ensure $HOME/.local/bin is on your PATH.
+
+For fish, run once:
+
+    fish_add_path "$HOME/.local/bin"
+
+For Bash, add this line to ~/.bash_profile for login shells, or ~/.bashrc
+for non-login interactive shells:
+
+    export PATH="$HOME/.local/bin:$PATH"
+
+For Zsh, add this line to ~/.zshrc:
+
+    export PATH="$HOME/.local/bin:$PATH"
+
+After editing the Bash or Zsh configuration, open a new terminal.
+
+Colorize a log stream with ANSI output (also suitable for pipes):
+
+    tail -f /path/to/service.log | ccze -A -o nolookups
+
+Use `ccze --help` for options and `ccze -l` for supported log formats.
+Omit `-A` for the original curses display, or use `-h` for HTML output.
+The build above includes all bundled plugins in the executable, so no
+separate plugin installation is needed.
+
+CCZE uses PCRE2's 8-bit library, not the legacy PCRE library. Existing
+third-party plugins must be ported to ccze-regex.h and rebuilt (plugin ABI 3).
+The PCRE_CONFIG configure variable, if set, must point to pcre2-config.
+
 See the NEWS file for a description of recent changes to CCZE.
 
 See the file INSTALL for instructions on how to build and install the

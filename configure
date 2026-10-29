@@ -5924,8 +5924,8 @@ fi
 
 
 if test -z "${PCRE_CONFIG}"; then
-	# Extract the first word of "pcre-config", so it can be a program name with args.
-set dummy pcre-config; ac_word=$2
+	# Extract the first word of "pcre2-config", so it can be a program name with args.
+set dummy pcre2-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
 if test "${ac_cv_path_PCRE_CONFIG+set}" = set; then
@@ -5966,94 +5966,25 @@ fi
 
 
 fi
-{ echo "$as_me:$LINENO: checking for PCRE" >&5
-echo $ECHO_N "checking for PCRE... $ECHO_C" >&6; }
+{ echo "$as_me:$LINENO: checking for PCRE2" >&5
+echo $ECHO_N "checking for PCRE2... $ECHO_C" >&6; }
 if test "${PCRE_CONFIG}" = "no"; then
-	{ { echo "$as_me:$LINENO: error: PCRE not found" >&5
-echo "$as_me: error: PCRE not found" >&2;}
+	{ { echo "$as_me:$LINENO: error: PCRE2 not found" >&5
+echo "$as_me: error: PCRE2 not found" >&2;}
    { (exit 1); exit 1; }; }
 fi
-PCRE_CFLAGS=$($PCRE_CONFIG --cflags)
-PCRE_LIBS=$($PCRE_CONFIG --libs)
+PCRE_CFLAGS=$($PCRE_CONFIG --cflags) || {
+  echo "$as_me: error: pcre2-config --cflags failed" >&2
+  exit 1
+}
+PCRE_LIBS=$($PCRE_CONFIG --libs8) || {
+  echo "$as_me: error: pcre2-config --libs8 failed" >&2
+  exit 1
+}
 
 
 { echo "$as_me:$LINENO: result: found" >&5
 echo "${ECHO_T}found" >&6; }
-
-{ echo "$as_me:$LINENO: checking for suboptarg" >&5
-echo $ECHO_N "checking for suboptarg... $ECHO_C" >&6; }
-if test "$cross_compiling" = yes; then
-  have_suboptarg="no"
-else
-  cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-static char **empty_subopts[] = { NULL };
-extern char *suboptarg;
-
-int
-main ()
-{
-  char *subopts = "something";
-  char *value;
-
-  getsubopt (&subopts, empty_subopts, &value);
-  exit (!suboptarg);
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && { ac_try='./conftest$ac_exeext'
-  { (case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-  have_suboptarg="yes"
-else
-  echo "$as_me: program exited with status $ac_status" >&5
-echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-( exit $ac_status )
-have_suboptarg="no"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
-fi
-
-
-{ echo "$as_me:$LINENO: result: ${have_suboptarg}" >&5
-echo "${ECHO_T}${have_suboptarg}" >&6; }
-case ${have_suboptarg} in
-	yes)
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_SUBOPTARG 1
-_ACEOF
-
-		;;
-esac
 
 ALL_PLUGINS=$(tr '\n' ' ' < ${srcdir}/ccze.plugins)
 

@@ -29,22 +29,22 @@ static void ccze_ftpstats_setup (void);
 static void ccze_ftpstats_shutdown (void);
 static int ccze_ftpstats_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_ftpstats;
-static pcre_extra *hints_ftpstats;
+static ccze_regex_t *reg_ftpstats;
+
 
 static char *
 ccze_ftpstats_process (const char *str, int *offsets, int match)
 {
   char *date, *sessionid, *user, *host, *type, *size, *duration, *file;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&sessionid);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&user);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&host);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&type);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&size);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&duration);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&file);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&sessionid);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&user);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&host);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&type);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&size);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&duration);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&file);
 
   ccze_print_date (date);
   ccze_space ();
@@ -78,21 +78,17 @@ ccze_ftpstats_process (const char *str, int *offsets, int match)
 static void
 ccze_ftpstats_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_ftpstats = pcre_compile
+
+  reg_ftpstats = ccze_regex_compile
     ("^(\\d{9,10})\\s([\\da-f]+\\.[\\da-f]+)\\s([^\\s]+)\\s([^\\s]+)"
-     "\\s(U|D)\\s(\\d+)\\s(\\d+)\\s(.*)$",
-     0, &error, &errptr, NULL);
-  hints_ftpstats = pcre_study (reg_ftpstats, 0, &error);
+     "\\s(U|D)\\s(\\d+)\\s(\\d+)\\s(.*)$");
 }
 
 static void
 ccze_ftpstats_shutdown (void)
 {
-  free (reg_ftpstats);
-  free (hints_ftpstats);
+  ccze_regex_free (reg_ftpstats);
 }
 
 static int
@@ -100,8 +96,7 @@ ccze_ftpstats_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_ftpstats, hints_ftpstats, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_ftpstats, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_ftpstats_process (str, offsets, match);
       return 1;

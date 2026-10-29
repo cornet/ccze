@@ -26,19 +26,19 @@ static void ccze_vsftpd_setup (void);
 static void ccze_vsftpd_shutdown (void);
 static int ccze_vsftpd_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_vsftpd;
-static pcre_extra *hints_vsftpd;
+static ccze_regex_t *reg_vsftpd;
+
 
 static char *
 ccze_vsftpd_log_process (const char *str, int *offsets, int match)
 {
   char *date, *sspace, *pid, *user, *other;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&sspace);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&pid);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&user);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&other);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&sspace);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&pid);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&user);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&other);
   
   ccze_addstr (CCZE_COLOR_DATE, date);
   ccze_addstr (CCZE_COLOR_DEFAULT, sspace);
@@ -68,21 +68,17 @@ ccze_vsftpd_log_process (const char *str, int *offsets, int match)
 static void
 ccze_vsftpd_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_vsftpd = pcre_compile
+
+  reg_vsftpd = ccze_regex_compile
     ("^(\\S+\\s+\\S+\\s+\\d{1,2}\\s+\\d{1,2}:\\d{1,2}:\\d{1,2}\\s+\\d+)"
-     "(\\s+)\\[pid (\\d+)\\]\\s+(\\[(\\S+)\\])?\\s*(.*)$", 0, &error,
-     &errptr, NULL);
-  hints_vsftpd = pcre_study (reg_vsftpd, 0, &error);
+     "(\\s+)\\[pid (\\d+)\\]\\s+(\\[(\\S+)\\])?\\s*(.*)$");
 }
 
 static void
 ccze_vsftpd_shutdown (void)
 {
-  free (reg_vsftpd);
-  free (hints_vsftpd);
+  ccze_regex_free (reg_vsftpd);
 }
 
 static int
@@ -90,8 +86,7 @@ ccze_vsftpd_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_vsftpd, hints_vsftpd, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_vsftpd, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_vsftpd_log_process (str, offsets, match);
       return 1;

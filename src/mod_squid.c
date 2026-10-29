@@ -27,8 +27,8 @@ static void ccze_squid_setup (void);
 static void ccze_squid_shutdown (void);
 static int ccze_squid_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_squid_access, *reg_squid_store, *reg_squid_cache;
-static pcre_extra *hints_squid_access, *hints_squid_store, *hints_squid_cache;
+static ccze_regex_t *reg_squid_access, *reg_squid_store, *reg_squid_cache;
+
 
 static ccze_color_t
 _ccze_proxy_action (const char *action)
@@ -87,19 +87,19 @@ ccze_squid_access_log_process (const char *str, int *offsets, int match)
   char *date, *espace, *elaps, *host, *action, *httpc, *gsize;
   char *method, *uri, *ident, *hierar, *fhost, *ctype;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&espace);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&elaps);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&host);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&action);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&httpc);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&gsize);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&method);
-  pcre_get_substring (str, offsets, match, 9, (const char **)&uri);
-  pcre_get_substring (str, offsets, match, 10, (const char **)&ident);
-  pcre_get_substring (str, offsets, match, 11, (const char **)&hierar);
-  pcre_get_substring (str, offsets, match, 12, (const char **)&fhost);
-  pcre_get_substring (str, offsets, match, 13, (const char **)&ctype);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&espace);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&elaps);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&host);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&action);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&httpc);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&gsize);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&method);
+  ccze_regex_substring (str, offsets, match, 9, (const char **)&uri);
+  ccze_regex_substring (str, offsets, match, 10, (const char **)&ident);
+  ccze_regex_substring (str, offsets, match, 11, (const char **)&hierar);
+  ccze_regex_substring (str, offsets, match, 12, (const char **)&fhost);
+  ccze_regex_substring (str, offsets, match, 13, (const char **)&ctype);
 
   ccze_print_date (date);
   ccze_addstr (CCZE_COLOR_DEFAULT, espace);
@@ -157,8 +157,8 @@ ccze_squid_cache_log_process (const char *str, int *offsets, int match)
 {
   char *date, *other;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&other);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&other);
 
   ccze_addstr (CCZE_COLOR_DATE, date);
   ccze_space();
@@ -174,24 +174,24 @@ ccze_squid_store_log_process (const char *str, int *offsets, int match)
   char *hdate, *lmdate, *expire, *ctype, *size, *read, *method;
   char *uri, *space2, *space3, *space4;
     
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&tag);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&swapnum);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&swapname);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&swapsum);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&space1);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&hcode);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&space2);
-  pcre_get_substring (str, offsets, match, 9, (const char **)&hdate);
-  pcre_get_substring (str, offsets, match, 10, (const char **)&space3);
-  pcre_get_substring (str, offsets, match, 11, (const char **)&lmdate);
-  pcre_get_substring (str, offsets, match, 12, (const char **)&space4);
-  pcre_get_substring (str, offsets, match, 13, (const char **)&expire);
-  pcre_get_substring (str, offsets, match, 14, (const char **)&ctype);
-  pcre_get_substring (str, offsets, match, 15, (const char **)&size);
-  pcre_get_substring (str, offsets, match, 16, (const char **)&read);
-  pcre_get_substring (str, offsets, match, 17, (const char **)&method);
-  pcre_get_substring (str, offsets, match, 18, (const char **)&uri);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&tag);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&swapnum);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&swapname);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&swapsum);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&space1);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&hcode);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&space2);
+  ccze_regex_substring (str, offsets, match, 9, (const char **)&hdate);
+  ccze_regex_substring (str, offsets, match, 10, (const char **)&space3);
+  ccze_regex_substring (str, offsets, match, 11, (const char **)&lmdate);
+  ccze_regex_substring (str, offsets, match, 12, (const char **)&space4);
+  ccze_regex_substring (str, offsets, match, 13, (const char **)&expire);
+  ccze_regex_substring (str, offsets, match, 14, (const char **)&ctype);
+  ccze_regex_substring (str, offsets, match, 15, (const char **)&size);
+  ccze_regex_substring (str, offsets, match, 16, (const char **)&read);
+  ccze_regex_substring (str, offsets, match, 17, (const char **)&method);
+  ccze_regex_substring (str, offsets, match, 18, (const char **)&uri);
 
   ccze_print_date (date);
   ccze_space();
@@ -248,37 +248,30 @@ ccze_squid_store_log_process (const char *str, int *offsets, int match)
 static void
 ccze_squid_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_squid_access = pcre_compile
+
+  reg_squid_access = ccze_regex_compile
     ("^(\\d{9,10}\\.\\d{3})(\\s+)(\\d+)\\s(\\S+)\\s(\\w+)\\/(\\d{3})"
-     "\\s(\\d+)\\s(\\w+)\\s(\\S+)\\s(\\S+)\\s(\\w+)\\/([\\d\\.]+|-)\\s(.*)",
-     0, &error, &errptr, NULL);
-  hints_squid_access = pcre_study (reg_squid_access, 0, &error);
+     "\\s(\\d+)\\s(\\w+)\\s(\\S+)\\s(\\S+)\\s(\\w+)\\/([\\d\\.]+|-)\\s(.*)");
 
-  reg_squid_cache = pcre_compile
-    ("^(\\d{4}\\/\\d{2}\\/\\d{2}\\s(\\d{2}:){2}\\d{2}\\|)\\s(.*)$", 0,
-     &error, &errptr, NULL);
-  hints_squid_cache = pcre_study (reg_squid_cache, 0, &error);
 
-  reg_squid_store = pcre_compile
+  reg_squid_cache = ccze_regex_compile
+    ("^(\\d{4}\\/\\d{2}\\/\\d{2}\\s(\\d{2}:){2}\\d{2}\\|)\\s(.*)$");
+
+
+  reg_squid_store = ccze_regex_compile
     ("^([\\d\\.]+)\\s(\\w+)\\s(\\-?[\\dA-F]+)\\s+(\\S+)\\s([\\dA-F]+)"
      "(\\s+)(\\d{3}|\\?)(\\s+)(\\-?[\\d\\?]+)(\\s+)(\\-?[\\d\\?]+)(\\s+)"
      "(\\-?[\\d\\?]+)\\s(\\S+)\\s(\\-?[\\d|\\?]+)\\/(\\-?[\\d|\\?]+)\\s"
-     "(\\S+)\\s(.*)", 0, &error, &errptr, NULL);
-  hints_squid_store = pcre_study (reg_squid_store, 0, &error);
+     "(\\S+)\\s(.*)");
 }
 
 static void
 ccze_squid_shutdown (void)
 {
-  free (reg_squid_access);
-  free (hints_squid_access);
-  free (reg_squid_cache);
-  free (hints_squid_cache);
-  free (reg_squid_store);
-  free (hints_squid_store);
+  ccze_regex_free (reg_squid_access);
+  ccze_regex_free (reg_squid_cache);
+  ccze_regex_free (reg_squid_store);
 }
 
 static int
@@ -286,22 +279,22 @@ ccze_squid_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
 
-  if ((match = pcre_exec (reg_squid_access, hints_squid_access, str,
-			  length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_squid_access, str,
+			  length, offsets, 99)) >= 0)
     {
       *rest = ccze_squid_access_log_process (str, offsets, match);
       return 1;
     }
   
-  if ((match = pcre_exec (reg_squid_store, hints_squid_store, str,
-			  length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_squid_store, str,
+			  length, offsets, 99)) >= 0)
     {
       *rest = ccze_squid_store_log_process (str, offsets, match);
       return 1;
     }
   
-  if ((match = pcre_exec (reg_squid_cache, hints_squid_cache, str,
-			  length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_squid_cache, str,
+			  length, offsets, 99)) >= 0)
     {
       *rest = ccze_squid_cache_log_process (str, offsets, match);
       return 1;

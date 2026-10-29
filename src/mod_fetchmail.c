@@ -27,18 +27,18 @@ static void ccze_fetchmail_setup (void);
 static void ccze_fetchmail_shutdown (void);
 static int ccze_fetchmail_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_fetchmail;
+static ccze_regex_t *reg_fetchmail;
 
 static char *
 ccze_fetchmail_process (const char *str, int *offsets, int match)
 {
   char *start, *addy, *current, *full, *rest;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&start);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&addy);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&current);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&full);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&rest);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&start);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&addy);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&current);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&full);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&rest);
 
   ccze_addstr (CCZE_COLOR_DEFAULT, start);
   ccze_space ();
@@ -62,18 +62,16 @@ ccze_fetchmail_process (const char *str, int *offsets, int match)
 static void
 ccze_fetchmail_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_fetchmail = pcre_compile
-    ("(reading message) ([^@]*@[^:]*):([0-9]*) of ([0-9]*) (.*)", 0,
-     &error, &errptr, NULL);
+
+  reg_fetchmail = ccze_regex_compile
+    ("(reading message) ([^@]*@[^:]*):([0-9]*) of ([0-9]*) (.*)");
 }
 
 static void
 ccze_fetchmail_shutdown (void)
 {
-  free (reg_fetchmail);
+  ccze_regex_free (reg_fetchmail);
 }
 
 static int
@@ -81,7 +79,7 @@ ccze_fetchmail_handle (const char *str, size_t length, char **rest)
 {
   int offsets[99], match;
   
-  if ((match = pcre_exec (reg_fetchmail, NULL, str, length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_fetchmail, str, length, offsets, 99)) >= 0)
     {
       if (rest)
 	*rest = ccze_fetchmail_process (str, offsets, match);

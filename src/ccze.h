@@ -25,7 +25,7 @@
 #ifdef HAVE_SYSTEM_H
 # include "system.h"
 #endif
-#include <pcre.h>
+#include <ccze-regex.h>
 #include <ncurses.h>
 #include <stddef.h>
 
@@ -163,7 +163,7 @@ typedef struct
 char **ccze_plugin_argv_get (const char *name);
 const char *ccze_plugin_name_get (void);
 
-#define CCZE_ABI_VERSION 2
+#define CCZE_ABI_VERSION 3
 
 #define CCZE_DEFINE_PLUGINS(plugins...) \
 char *ccze_plugin_list[] = { plugins, NULL }

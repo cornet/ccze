@@ -33,8 +33,8 @@ LIBS		= @PCRE_LIBS@ @LIBS@
 
 SOURCES		= ccze.c ccze-color.c ccze-plugin.c ccze-wordcolor.c \
 		$(addprefix mod_,$(addsuffix .c, ${ALL_PLUGINS})) \
-		ccze-dump.c ccze-cssdump.c ccze-compat.c
-HEADERS		= ccze.h ccze-compat.h ccze-private.h
+		ccze-dump.c ccze-cssdump.c ccze-compat.c ccze-regex.c
+HEADERS		= ccze.h ccze-compat.h ccze-private.h ccze-regex.h
 ALL_PLUGINS	= @ALL_PLUGINS@
 S_PLUGINS	= @S_PLUGINS@
 SH_PLUGINS	= $(filter-out ${S_PLUGINS},${ALL_PLUGINS})
@@ -44,7 +44,7 @@ PLUGIN_OBJS	= ${PLUGIN_SHOBJS} ${PLUGIN_SOBJS}
 CLEANFILES	= ccze-dump ccze-cssdump
 DISTCLEANFILES	= ccze-builtins.c
 OBJECTS		= ccze.o ccze-color.o ccze-plugin.o ccze-wordcolor.o \
-		ccze-builtins.o ccze-compat.o
+		ccze-builtins.o ccze-compat.o ccze-regex.o
 
 ## -- Standard targets -- ##
 all: ${PROGRAM} ${PLUGIN_SHOBJS} ccze-dump ccze-cssdump
@@ -53,7 +53,7 @@ install: all
 	${INSTALL} -d ${DESTDIR}${bindir}
 	${INSTALL_PROGRAM} ${PROGRAM} ccze-cssdump ${DESTDIR}${bindir}/
 	${INSTALL} -d ${DESTDIR}${includedir}
-	${INSTALL_DATA} ${srcdir}/ccze.h ${DESTDIR}${includedir}
+	${INSTALL_DATA} ${srcdir}/ccze.h ${srcdir}/ccze-regex.h ${DESTDIR}${includedir}
 ifneq (${SH_PLUGINS},)
 	${INSTALL} -d ${DESTDIR}${pkglibdir}
 	${INSTALL_DATA} ${PLUGIN_SHOBJS} ${DESTDIR}${pkglibdir}/
@@ -66,7 +66,8 @@ install-strip:
 uninstall:
 	rm -f ${DESTDIR}${bindir}/${PROGRAM} \
 	      ${DESTDIR}${bindir}/ccze-cssdump \
-	      ${DESTDIR}${includedir}/ccze.h
+	      ${DESTDIR}${includedir}/ccze.h \
+	      ${DESTDIR}${includedir}/ccze-regex.h
 ifneq (${SH_PLUGINS},)
 	rm -f $(addprefix ${DESTDIR}${pkglibdir}/,${PLUGIN_SHOBJS})
 endif
@@ -94,9 +95,9 @@ ifneq (${S_PLUGINS},)
 	done
 endif
 	echo "}" >>$@
-%.o: %.c ccze.h
+%.o: %.c ccze.h ccze-regex.h
 	${CC} -c ${CPPFLAGS} ${ALL_CFLAGS} $<
-%.so: mod_%.c ccze.h
+%.so: mod_%.c ccze.h ccze-regex.h
 	${CC} -fPIC -DPIC ${ALL_CFLAGS} ${ALL_LDFLAGS} -o $@ $< -shared
 
 ## -- Dependencies -- ##

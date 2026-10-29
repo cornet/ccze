@@ -103,40 +103,17 @@ AC_CHECK_FUNC(dlopen, [], [AC_CHECK_LIB(dl, dlopen)])
 AC_CHECK_FUNC(getopt_long, [], [AC_CHECK_LIB(gnugetopt, getopt_long)])
 
 if test -z "${PCRE_CONFIG}"; then
-	AC_PATH_PROG(PCRE_CONFIG, pcre-config, no)
+	AC_PATH_PROG(PCRE_CONFIG, pcre2-config, no)
 fi
-AC_MSG_CHECKING(for PCRE)
+AC_MSG_CHECKING(for PCRE2)
 if test "${PCRE_CONFIG}" = "no"; then
-	AC_ERROR(PCRE not found)
+	AC_ERROR(PCRE2 not found)
 fi
-PCRE_CFLAGS=$($PCRE_CONFIG --cflags)
-PCRE_LIBS=$($PCRE_CONFIG --libs)
+PCRE_CFLAGS=$($PCRE_CONFIG --cflags) || AC_ERROR(pcre2-config --cflags failed)
+PCRE_LIBS=$($PCRE_CONFIG --libs8) || AC_ERROR(pcre2-config --libs8 failed)
 AC_SUBST(PCRE_CFLAGS)
 AC_SUBST(PCRE_LIBS)
 AC_MSG_RESULT(found)
-
-AC_MSG_CHECKING(for suboptarg)
-AC_RUN_IFELSE(AC_LANG_PROGRAM(
-[[#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-static char **empty_subopts[[]] = { NULL };
-extern char *suboptarg;
-]],
-[[  char *subopts = "something";
-  char *value;
-
-  getsubopt (&subopts, empty_subopts, &value);
-  exit (!suboptarg);]]), [have_suboptarg="yes"],
-[have_suboptarg="no"], [have_suboptarg="no"])
-AC_MSG_RESULT(${have_suboptarg})
-case ${have_suboptarg} in
-	yes)
-		AC_DEFINE_UNQUOTED(HAVE_SUBOPTARG, 1,
-			Define this if you have the suboptarg variable)
-		;;
-esac
 
 dnl **********************
 dnl * Plugins

@@ -27,7 +27,7 @@ static void ccze_apm_setup (void);
 static void ccze_apm_shutdown (void);
 static int ccze_apm_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_apm;
+static ccze_regex_t *reg_apm;
 
 static char *
 ccze_apm_process (const char *str, int *offsets, int match)
@@ -35,13 +35,13 @@ ccze_apm_process (const char *str, int *offsets, int match)
   char *battery, *charge, *rate, *stuff1, *elapsed, *remain;
   char *stuff2;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&battery);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&charge);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&rate);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&stuff1);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&elapsed);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&remain);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&stuff2);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&battery);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&charge);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&rate);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&stuff1);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&elapsed);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&remain);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&stuff2);
         
   ccze_addstr (CCZE_COLOR_DEFAULT, "Battery:");
   ccze_space ();
@@ -75,18 +75,17 @@ ccze_apm_process (const char *str, int *offsets, int match)
 static void
 ccze_apm_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_apm = pcre_compile
+
+  reg_apm = ccze_regex_compile
     ("Battery: (-?\\d*)%, ((.*)charging) \\((-?\\d*)% ([^ ]*) "
-     "(\\d*:\\d*:\\d*)\\), (\\d*:\\d*:\\d*) (.*)", 0, &error, &errptr, NULL);
+     "(\\d*:\\d*:\\d*)\\), (\\d*:\\d*:\\d*) (.*)");
 }
 
 static void
 ccze_apm_shutdown (void)
 {
-  free (reg_apm);
+  ccze_regex_free (reg_apm);
 }
 
 static int
@@ -94,8 +93,7 @@ ccze_apm_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_apm, NULL, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_apm, str, length, offsets, 99)) >= 0)
     {
       if (rest)
 	*rest = ccze_apm_process (str, offsets, match);

@@ -26,19 +26,19 @@ static void ccze_super_setup (void);
 static void ccze_super_shutdown (void);
 static int ccze_super_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_super;
-static pcre_extra *hints_super;
+static ccze_regex_t *reg_super;
+
 
 static char *
 ccze_super_process (const char *str, int *offsets, int match)
 {
   char *email, *date, *space, *suptag, *other;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&email);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&space);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&suptag);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&other);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&email);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&space);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&suptag);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&other);
 
   ccze_addstr (CCZE_COLOR_EMAIL, email);
   ccze_space ();
@@ -58,20 +58,17 @@ ccze_super_process (const char *str, int *offsets, int match)
 static void
 ccze_super_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_super = pcre_compile
+
+  reg_super = ccze_regex_compile
     ("^(\\S+)\\s(\\w+\\s+\\w+\\s+\\d+\\s+\\d+:\\d+:\\d+\\s+\\d+)"
-     "(\\s+)(\\S+)\\s\\(([^\\)]+)\\)", 0, &error, &errptr, NULL);
-  hints_super = pcre_study (reg_super, 0, &error);
+     "(\\s+)(\\S+)\\s\\(([^\\)]+)\\)");
 }
 
 static void
 ccze_super_shutdown (void)
 {
-  free (reg_super);
-  free (hints_super);
+  ccze_regex_free (reg_super);
 }
 
 static int
@@ -79,8 +76,7 @@ ccze_super_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_super, hints_super, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_super, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_super_process (str, offsets, match);
       return 1;

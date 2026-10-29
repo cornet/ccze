@@ -27,8 +27,8 @@ static void ccze_httpd_setup (void);
 static void ccze_httpd_shutdown (void);
 static int ccze_httpd_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_httpd_access, *reg_httpd_error;
-static pcre_extra *hints_httpd_access, *hints_httpd_error;
+static ccze_regex_t *reg_httpd_access, *reg_httpd_error;
+
 
 static ccze_color_t
 _ccze_httpd_error (const char *level)
@@ -50,15 +50,15 @@ ccze_httpd_access_log_process (const char *str, int *offsets, int match)
   char *host, *vhost, *user, *date, *full_action, *method, *http_code;
   char *gsize, *other;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&vhost);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&host);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&user);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&full_action);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&method);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&http_code);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&gsize);
-  pcre_get_substring (str, offsets, match, 9, (const char **)&other);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&vhost);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&host);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&user);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&full_action);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&method);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&http_code);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&gsize);
+  ccze_regex_substring (str, offsets, match, 9, (const char **)&other);
 
   ccze_addstr (CCZE_COLOR_HOST, vhost);
   ccze_space();
@@ -103,9 +103,9 @@ ccze_httpd_error_log_process (const char *str, int *offsets, int match)
   char *date, *level, *msg;
   ccze_color_t lcol;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&level);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&msg);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&level);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&msg);
 
   ccze_addstr (CCZE_COLOR_DATE, date);
   ccze_space ();
@@ -128,29 +128,24 @@ ccze_httpd_error_log_process (const char *str, int *offsets, int match)
 static void
 ccze_httpd_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_httpd_access = pcre_compile
+
+  reg_httpd_access = ccze_regex_compile
     ("^(\\S*)\\s(\\S*)?\\s?-\\s(\\S+)\\s(\\[\\d{1,2}\\/\\S*"
      "\\/\\d{4}:\\d{2}:\\d{2}:\\d{2}.{0,6}[^\\]]*\\])\\s"
-     "(\"([^ \"]+)\\s*[^\"]*\")\\s(\\d{3})\\s(\\d+|-)\\s*(.*)$",
-     0, &error, &errptr, NULL);
-  hints_httpd_access = pcre_study (reg_httpd_access, 0, &error);
+     "(\"([^ \"]+)\\s*[^\"]*\")\\s(\\d{3})\\s(\\d+|-)\\s*(.*)$");
 
-  reg_httpd_error = pcre_compile
+
+  reg_httpd_error = ccze_regex_compile
     ("^(\\[\\w{3}\\s\\w{3}\\s{1,2}\\d{1,2}\\s\\d{2}:\\d{2}:\\d{2}\\s"
-     "\\d{4}\\])\\s(\\[\\w*\\])\\s(.*)$", 0, &error, &errptr, NULL);
-  hints_httpd_error = pcre_study (reg_httpd_error, 0, &error);
+     "\\d{4}\\])\\s(\\[\\w*\\])\\s(.*)$");
 }
 
 static void
 ccze_httpd_shutdown (void)
 {
-  free (reg_httpd_access);
-  free (hints_httpd_access);
-  free (reg_httpd_error);
-  free (hints_httpd_error);
+  ccze_regex_free (reg_httpd_access);
+  ccze_regex_free (reg_httpd_error);
 }
 
 static int
@@ -158,14 +153,12 @@ ccze_httpd_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
 
-  if ((match = pcre_exec (reg_httpd_access, hints_httpd_access,
-			  str, length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_httpd_access, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_httpd_access_log_process (str, offsets, match);
       return 1;
     }
-  if ((match = pcre_exec (reg_httpd_error, hints_httpd_error,
-			  str, length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_httpd_error, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_httpd_error_log_process (str, offsets, match);
       return 1;

@@ -3,7 +3,7 @@ Section: utils
 Priority: extra
 Maintainer: Stephen Gran <sgran@debian.org>
 Standards-Version: 3.7.2
-Build-Depends: libpcre3-dev, libncurses5-dev
+Build-Depends: libpcre2-dev, libncurses5-dev
 
 Package: ccze
 Architecture: any

@@ -27,22 +27,22 @@ static void ccze_proftpd_setup (void);
 static void ccze_proftpd_shutdown (void);
 static int ccze_proftpd_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_proftpd_access, *reg_proftpd_auth;
-static pcre_extra *hints_proftpd_access, *hints_proftpd_auth;
+static ccze_regex_t *reg_proftpd_access, *reg_proftpd_auth;
+
 
 static char *
 ccze_proftpd_access_log_process (const char *str, int *offsets, int match)
 {
   char *host, *user, *auser, *date, *command, *file, *ftpcode, *size;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&host);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&user);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&auser);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&command);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&file);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&ftpcode);
-  pcre_get_substring (str, offsets, match, 8, (const char **)&size);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&host);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&user);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&auser);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&command);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&file);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&ftpcode);
+  ccze_regex_substring (str, offsets, match, 8, (const char **)&size);
 
   ccze_addstr (CCZE_COLOR_HOST, host);
   ccze_space ();
@@ -86,13 +86,13 @@ ccze_proftpd_auth_log_process (const char *str, int *offsets, int match)
 {
   char *servhost, *pid, *remhost, *date, *cmd, *value, *ftpcode;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&servhost);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&pid);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&remhost);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&cmd);
-  pcre_get_substring (str, offsets, match, 6, (const char **)&value);
-  pcre_get_substring (str, offsets, match, 7, (const char **)&ftpcode);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&servhost);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&pid);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&remhost);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&cmd);
+  ccze_regex_substring (str, offsets, match, 6, (const char **)&value);
+  ccze_regex_substring (str, offsets, match, 7, (const char **)&ftpcode);
 
   ccze_addstr (CCZE_COLOR_HOST, servhost);
   ccze_space ();
@@ -132,29 +132,25 @@ ccze_proftpd_auth_log_process (const char *str, int *offsets, int match)
 static void
 ccze_proftpd_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_proftpd_access = pcre_compile
+
+  reg_proftpd_access = ccze_regex_compile
     ("^(\\d+\\.\\d+\\.\\d+\\.\\d+) (\\S+) (\\S+) "
      "\\[(\\d{2}/.{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2} [\\-\\+]\\d{4})\\] "
-     "\"([A-Z]+) ([^\"]+)\" (\\d{3}) (-|\\d+)", 0, &error, &errptr, NULL);
-  hints_proftpd_access = pcre_study (reg_proftpd_access, 0, &error);
+     "\"([A-Z]+) ([^\"]+)\" (\\d{3}) (-|\\d+)");
 
-  reg_proftpd_auth = pcre_compile
+
+  reg_proftpd_auth = ccze_regex_compile
     ("^(\\S+) ftp server \\[(\\d+)\\] (\\d+\\.\\d+\\.\\d+\\.\\d+) "
      "\\[(\\d{2}/.{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2} [\\-\\+]\\d{4})\\] "
-     "\"([A-Z]+) ([^\"]+)\" (\\d{3})", 0, &error, &errptr, NULL);
-  hints_proftpd_auth = pcre_study (reg_proftpd_auth, 0, &error);
+     "\"([A-Z]+) ([^\"]+)\" (\\d{3})");
 }
 
 static void
 ccze_proftpd_shutdown (void)
 {
-  free (reg_proftpd_auth);
-  free (hints_proftpd_auth);
-  free (reg_proftpd_access);
-  free (hints_proftpd_access);
+  ccze_regex_free (reg_proftpd_auth);
+  ccze_regex_free (reg_proftpd_access);
 }
 
 static int
@@ -162,14 +158,12 @@ ccze_proftpd_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
 
-  if ((match = pcre_exec (reg_proftpd_access, hints_proftpd_access,
-			  str, length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_proftpd_access, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_proftpd_access_log_process (str, offsets, match);
       return 1;
     }
-  if ((match = pcre_exec (reg_proftpd_auth, hints_proftpd_auth,
-			  str, length, 0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_proftpd_auth, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_proftpd_auth_log_process (str, offsets, match);
       return 1;

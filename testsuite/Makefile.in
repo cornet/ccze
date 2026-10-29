@@ -11,22 +11,28 @@ include ../Rules.mk
 
 TESTS_ENVIRONMENT       = top_builddir=$(top_builddir) \
 			VERSION=$(VERSION)
-TESTS                   = version.test bug-wnum.test bug-procmailsubj.test \
+TESTS                   = regex.test version.test bug-wnum.test bug-procmailsubj.test \
 			bug-procmailsubj2.test bug-sysrepeat.test bug-httpd.test \
 			bug-dpkg.test
 TEST_IO			= $(foreach test,${TESTS},\
 				$(addsuffix .ok,$(basename $(test)))) \
 			$(foreach test,${TESTS},\
 				$(addsuffix .in,$(basename $(test))))
+SOURCES                 = regex-test.c
+CLEANFILES              = regex-test regex-test.dSYM
 EXTRA_DIST		= defs do-test \
-			$(filter-out version.in,$(filter-out version.ok,\
-				${TEST_IO}))
+			$(filter-out version.in version.ok regex.in regex.ok,${TEST_IO})
 
 ## -- Standard targets -- ##
 all: ;
 
+regex-test: ${srcdir}/regex-test.c ${top_builddir}/src/ccze-regex.o
+	${CC} ${CPPFLAGS} ${CFLAGS} -I${top_srcdir}/src -o $@ \
+		${srcdir}/regex-test.c ${top_builddir}/src/ccze-regex.o \
+		${LDFLAGS} @PCRE_LIBS@
+
 # Taken from autoconf
-check: ${TESTS}
+check: regex-test ${TESTS}
 	@failed=0; all=0; xfail=0; xpass=0; \
 	srcdir=$(srcdir); export srcdir; \
 	list='$(TESTS)'; \

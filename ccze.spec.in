@@ -13,7 +13,7 @@ Copyright: GPL
 Group: Applications/Text
 Source: ftp://bonehunter.rulez.org/pub/ccze/%{dist}/ccze-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
-BuildPrereq: ncurses-devel >= 5.0, pcre-devel >= 3.1
+BuildPrereq: ncurses-devel >= 5.0, pcre2-devel
 
 %description
 CCZE is a roboust and modular log colorizer, with plugins for apm,

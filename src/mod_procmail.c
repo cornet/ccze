@@ -27,8 +27,8 @@ static void ccze_procmail_setup (void);
 static void ccze_procmail_shutdown (void);
 static int ccze_procmail_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_procmail;
-static pcre_extra *hints_procmail;
+static ccze_regex_t *reg_procmail;
+
 
 static char *
 ccze_procmail_process (const char *str, int *offsets, int match)
@@ -38,11 +38,11 @@ ccze_procmail_process (const char *str, int *offsets, int match)
   int handled = 0;
   ccze_color_t col = CCZE_COLOR_UNKNOWN;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&space1);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&header);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&value);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&space2);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&extra);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&space1);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&header);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&value);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&space2);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&extra);
   
   if (!strcasecmp ("from", header) || !strcasecmp (">from", header))
     {
@@ -95,20 +95,16 @@ ccze_procmail_process (const char *str, int *offsets, int match)
 static void
 ccze_procmail_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_procmail = pcre_compile
-    ("^(\\s*)(>?From|Subject:|Folder:)?\\s(\\S+)(\\s+)?(.*)", 0,
-     &error, &errptr, NULL);
-  hints_procmail = pcre_study (reg_procmail, 0, &error);
+
+  reg_procmail = ccze_regex_compile
+    ("^(\\s*)(>?From|Subject:|Folder:)?\\s(\\S+)(\\s+)?(.*)");
 }
 
 static void
 ccze_procmail_shutdown (void)
 {
-  free (reg_procmail);
-  free (hints_procmail);
+  ccze_regex_free (reg_procmail);
 }
 
 static int
@@ -116,8 +112,7 @@ ccze_procmail_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_procmail, hints_procmail, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_procmail, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_procmail_process (str, offsets, match);
       return 1;

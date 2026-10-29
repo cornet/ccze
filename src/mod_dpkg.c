@@ -28,17 +28,17 @@ static void ccze_dpkg_shutdown (void);
 static int ccze_dpkg_handle (const char *str, size_t length, char **rest);
 
 
-static pcre *reg_dpkg_status, *reg_dpkg_action, *reg_dpkg_conffile;
+static ccze_regex_t *reg_dpkg_status, *reg_dpkg_action, *reg_dpkg_conffile;
 
 static char *
 ccze_dpkg_status_process(const char *str, int *offsets, int match)
 {
   char *date, *state, *pkg, *installed_version;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&state);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&pkg);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&installed_version);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&state);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&pkg);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&installed_version);
 
   ccze_print_date(date);
   ccze_space();
@@ -64,11 +64,11 @@ ccze_dpkg_action_process(const char *str, int *offsets, int match)
 {
   char *date, *action, *pkg, *installed_version, *available_version;
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&action);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&pkg);
-  pcre_get_substring (str, offsets, match, 4, (const char **)&installed_version);
-  pcre_get_substring (str, offsets, match, 5, (const char **)&available_version);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&action);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&pkg);
+  ccze_regex_substring (str, offsets, match, 4, (const char **)&installed_version);
+  ccze_regex_substring (str, offsets, match, 5, (const char **)&available_version);
 
   ccze_print_date(date);
   ccze_space();
@@ -96,9 +96,9 @@ ccze_dpkg_conffile_process(const char *str, int *offsets, int match)
   char *date, *filename, *decision;
   /* YYYY-MM-DD HH:MM:SS conffile <filename> <decision> */
 
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&filename);
-  pcre_get_substring (str, offsets, match, 3, (const char **)&decision);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&filename);
+  ccze_regex_substring (str, offsets, match, 3, (const char **)&decision);
 
   ccze_print_date(date);
   ccze_space();
@@ -120,32 +120,28 @@ ccze_dpkg_conffile_process(const char *str, int *offsets, int match)
 static void
 ccze_dpkg_setup (void)
 {
-  const char *error;
-  int errptr;
+
 
   /* YYYY-MM-DD HH:MM:SS status <state> <pkg> <installed-version> */
-  reg_dpkg_status = pcre_compile(
-      "^([-\\d]{10}\\s[:\\d]{8})\\sstatus\\s(\\S+)\\s(\\S+)\\s(\\S+)$",
-      0, &error, &errptr, NULL);
+  reg_dpkg_status = ccze_regex_compile(
+      "^([-\\d]{10}\\s[:\\d]{8})\\sstatus\\s(\\S+)\\s(\\S+)\\s(\\S+)$");
 
   /* YYYY-MM-DD HH:MM:SS <action> <pkg> <installed-version> <available-version> */
-  reg_dpkg_action = pcre_compile(
-      "^([-\\d]{10}\\s[:\\d]{8})\\s(install|upgrade|remove|purge)\\s(\\S+)\\s(\\S+)\\s(\\S+)$",
-      0, &error, &errptr, NULL);
+  reg_dpkg_action = ccze_regex_compile(
+      "^([-\\d]{10}\\s[:\\d]{8})\\s(install|upgrade|remove|purge)\\s(\\S+)\\s(\\S+)\\s(\\S+)$");
 
   /* YYYY-MM-DD HH:MM:SS conffile <filename> <decision> */
-  reg_dpkg_conffile = pcre_compile(
-      "^([-\\d]{10}\\s[:\\d]{8})\\sconffile\\s(\\S+)\\s(install|keep)$",
-      0, &error, &errptr, NULL);
+  reg_dpkg_conffile = ccze_regex_compile(
+      "^([-\\d]{10}\\s[:\\d]{8})\\sconffile\\s(\\S+)\\s(install|keep)$");
 
 }
 
 static void
 ccze_dpkg_shutdown (void)
 {
-  free (reg_dpkg_status);
-  free (reg_dpkg_action);
-  free (reg_dpkg_conffile);
+  ccze_regex_free (reg_dpkg_status);
+  ccze_regex_free (reg_dpkg_action);
+  ccze_regex_free (reg_dpkg_conffile);
 }
 
 static int
@@ -153,22 +149,19 @@ ccze_dpkg_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_dpkg_status, NULL, str, length,
-                  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_dpkg_status, str, length, offsets, 99)) >= 0)
   {
       *rest = ccze_dpkg_status_process (str, offsets, match);
       return 1;
   }
 
-  if ((match = pcre_exec (reg_dpkg_action, NULL, str, length,
-                  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_dpkg_action, str, length, offsets, 99)) >= 0)
   {
       *rest = ccze_dpkg_action_process (str, offsets, match);
       return 1;
   }
 
-  if ((match = pcre_exec (reg_dpkg_conffile, NULL, str, length,
-                  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_dpkg_conffile, str, length, offsets, 99)) >= 0)
   {
       *rest = ccze_dpkg_conffile_process (str, offsets, match);
       return 1;

@@ -27,8 +27,8 @@ static void ccze_exim_setup (void);
 static void ccze_exim_shutdown (void);
 static int ccze_exim_handle (const char *str, size_t length, char **rest);
 
-static pcre *reg_exim, *reg_exim_actiontype, *reg_exim_uniqn;
-static pcre_extra *hints_exim;
+static ccze_regex_t *reg_exim, *reg_exim_actiontype, *reg_exim_uniqn;
+
 
 static char *
 ccze_exim_process (const char *str, int *offsets, int match)
@@ -37,17 +37,17 @@ ccze_exim_process (const char *str, int *offsets, int match)
   int match2, offsets2[99];
   ccze_color_t color = CCZE_COLOR_UNKNOWN;
   
-  pcre_get_substring (str, offsets, match, 1, (const char **)&date);
-  pcre_get_substring (str, offsets, match, 2, (const char **)&msgfull);
+  ccze_regex_substring (str, offsets, match, 1, (const char **)&date);
+  ccze_regex_substring (str, offsets, match, 2, (const char **)&msgfull);
 
-  if ((match2 = pcre_exec (reg_exim_actiontype, NULL, msgfull,
-			   strlen (msgfull), 0, 0, offsets2, 99)) >= 0)
+  if ((match2 = ccze_regex_match (reg_exim_actiontype, msgfull,
+			   strlen (msgfull), offsets2, 99)) >= 0)
     {
-      pcre_get_substring (msgfull, offsets2, match2, 1,
+      ccze_regex_substring (msgfull, offsets2, match2, 1,
 			  (const char **)&uniqn);
-      pcre_get_substring (msgfull, offsets2, match2, 2,
+      ccze_regex_substring (msgfull, offsets2, match2, 2,
 			  (const char **)&action);
-      pcre_get_substring (msgfull, offsets2, match2, 3,
+      ccze_regex_substring (msgfull, offsets2, match2, 3,
 			  (const char **)&msg);
       if (action[0] == '<')
 	color = CCZE_COLOR_INCOMING;
@@ -56,12 +56,12 @@ ccze_exim_process (const char *str, int *offsets, int match)
       else if (action[0] == '=' || action[0] == '*')
 	color = CCZE_COLOR_ERROR;
     }
-  else if ((match2 = pcre_exec (reg_exim_uniqn, NULL, msgfull,
-				strlen (msgfull), 0, 0, offsets2, 99)) >= 0)
+  else if ((match2 = ccze_regex_match (reg_exim_uniqn, msgfull,
+				strlen (msgfull), offsets2, 99)) >= 0)
     {
-      pcre_get_substring (msgfull, offsets2, match2, 1,
+      ccze_regex_substring (msgfull, offsets2, match2, 1,
 			  (const char **)&uniqn);
-      pcre_get_substring (msgfull, offsets2, match2, 2,
+      ccze_regex_substring (msgfull, offsets2, match2, 2,
 			  (const char **)&msg);
     }
   else
@@ -88,28 +88,23 @@ ccze_exim_process (const char *str, int *offsets, int match)
 static void
 ccze_exim_setup (void)
 {
-  const char *error;
-  int errptr;
 
-  reg_exim = pcre_compile
-    ("^(\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2})\\s(.*)$", 0,
-     &error, &errptr, NULL);
-  hints_exim = pcre_study (reg_exim, 0, &error);
 
-  reg_exim_actiontype = pcre_compile
-    ("^(\\S{16})\\s([<=\\*][=>\\*])\\s(\\S+.*)$", 0, &error,
-     &errptr, NULL);
-  reg_exim_uniqn = pcre_compile ("^(\\S{16})\\s(.*)$", 0, &error,
-				 &errptr, NULL);
+  reg_exim = ccze_regex_compile
+    ("^(\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2})\\s(.*)$");
+
+
+  reg_exim_actiontype = ccze_regex_compile
+    ("^(\\S{16})\\s([<=\\*][=>\\*])\\s(\\S+.*)$");
+  reg_exim_uniqn = ccze_regex_compile ("^(\\S{16})\\s(.*)$");
 }
 
 static void
 ccze_exim_shutdown (void)
 {
-  free (reg_exim);
-  free (hints_exim);
-  free (reg_exim_actiontype);
-  free (reg_exim_uniqn);
+  ccze_regex_free (reg_exim);
+  ccze_regex_free (reg_exim_actiontype);
+  ccze_regex_free (reg_exim_uniqn);
 }
 
 static int
@@ -117,8 +112,7 @@ ccze_exim_handle (const char *str, size_t length, char **rest)
 {
   int match, offsets[99];
   
-  if ((match = pcre_exec (reg_exim, hints_exim, str, length,
-			  0, 0, offsets, 99)) >= 0)
+  if ((match = ccze_regex_match (reg_exim, str, length, offsets, 99)) >= 0)
     {
       *rest = ccze_exim_process (str, offsets, match);
       return 1;
